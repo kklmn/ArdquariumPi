@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=ArdquariumPi.desktop
+Exec=x-terminal-emulator -e sudo /usr/bin/python3 /home/pi/ArdquariumPi/ardquariumPi.py

@@ -1,0 +1,13 @@
+Enable boot to Desktop, not to CLI. 
+Edit /boot/config.txt:
+hdmi_force_hotplug=1
+
+Copy the .desktop file to
+/home/pi/.config/autostart
+
+It has inside:
+
+[Desktop Entry]
+Type=Application
+Name=ArdquariumPi.desktop
+Exec=x-terminal-emulator -e sudo /usr/bin/python3 /home/pi/ArdquariumPi/ardquariumPi.py

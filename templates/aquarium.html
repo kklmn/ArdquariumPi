@@ -1,0 +1,219 @@
+﻿<!doctype html>
+
+<html>
+  <head>
+    <title>My Discus Aquarium</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="refresh" content="60"/>
+
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/main_style.css') }}">
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/slider_checkbox.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='discusAquarium.ico') }}">
+
+    <script type="text/javascript"
+        src="{{ url_for('static', filename='js/my-funcs.js') }}">
+    </script>
+
+  </head>
+
+  <body>
+    <div class="flex-container" style="height: {{plotHeight+42}}px;">
+        <div class="pinlayout">
+            {% for pin in outPins %}
+                <div class="pinheader"
+                    {# color: {{outPins[pin]['color']}}; #}
+                    {% if pin in cronTasks%}
+                      style= "padding-top: 6px;"
+                    {% else %}
+                      style= "padding-top: 16px;"
+                    {% endif %}
+                    >
+                {{pin}}
+                {% if pin == "feeding" %}
+                    <p class="pinstatus" id="countdown"> </p>
+                {% endif %}
+                {% if pin in cronTasks%}
+                    <p class="pinstatus"
+                      {% if cronTasks[pin]['str'].startswith("on") %}
+                         style="color: {{outPins[pin]['color']}};"
+                      {% endif %} >
+                    {{ cronTasks[pin]['str'] }} </p>
+                {% endif %}
+                </div>
+                {# www.w3schools.com/howto/howto_css_switch.asp #}
+                <label class="toggle">
+                    <input type="checkbox" id={{pin}}
+                      onclick="state_change(this)"
+                      {{'checked' if outPins[pin].state == 1 else ''}}>
+                    <span class="slider"
+                       style="--checkedbackground: {{outPins[pin]['color']}}; --uncheckednotch: {{outPins[pin]['dimmedColor']}};">
+                    </span>
+                </label>                
+            {% endfor %}
+        </div>
+
+        <div class="gaugelayout">
+            {% for temperature in temperatures %}
+                <div id="{{temperature}}" class="tgaugesmall"></div>
+            {% endfor %}
+            <div class="gaugelayout1col">
+               {% for sensor in sensorsFromArduino %}
+                    <div id="{{sensor}}" class="tgauge"></div>
+               {% endfor %}
+               {% for sensor in sensorsFromRaspberry %}
+                    <div id="{{sensor}}" class="tgauge"></div>
+               {% endfor %}
+            </div>
+        </div>
+
+        <div class="plots">
+           {% if wantPlot.startswith("plotly") %}
+              <iframe id="temperatures"
+                title="Temperatures"
+                width="360"
+                height="300"
+                scrolling="no"
+                style="border: none;"
+                src="{{ url_for('static', filename='plots/timeplots.html') }}">
+              </iframe>
+           {% elif wantPlot.startswith("mpl") %}
+              <div>
+                {% for td in timedeltas %}
+                  <button class="timebutton {{'tdactive' if currentdelta == td else ''}}"
+                      id={{td}} onclick="time_range_change(this)">{{td}}</button>
+                {% endfor %}
+                <button class="timebutton ybutton {{'tdactive' if yrange == 'auto' else ''}}"
+                    id="yrange" onclick="y_range_change(this)">auto Y</button>
+                <div id="currentDate", class="currentDate"></div>
+              </div>
+              <script>
+                  make_current_date()
+              </script>
+
+              <img src="data:image/png;base64,{{plotStr}}"
+                width="360"
+                height={{plotHeight}}
+              />
+           {% endif %}
+        </div>
+
+        <div class="messages">
+          <div class="textbox">
+           {% for im, (message, messageTime) in enumerate(zip(messages, messageTimes)) %}
+               {% if im == 0 %}
+                 ► {{messageTime.split(',')[1]}}
+               {% else %}
+                 {{messageTime}}:
+               {% endif %}
+               
+               {% set pinName = message.split()[-2] %}               
+               {% set pinState = message.split()[-1] == 'on' %}               
+               {% set obj = thermostat if pinName == 'thermostat' else outPins[pinName] %}
+               {% set color = obj['color'] if pinState else obj['dimmedColor'] %}               
+               <span style="color: {{color}};">
+               {{message}}<br />
+               </span>
+          {% endfor %}
+          </div>
+        </div>
+    </div>
+
+    {% if thermostat['active'] is not none %}
+    <label class="toggle_small" id="thermostat">
+        <input type="checkbox" onclick="thermostat_state(this)"
+            {{'checked' if thermostat['active'] else ''}}>
+        <span class="slider_small"
+            style="--checkedbackground: {{thermostat['color']}}; --uncheckednotch: {{thermostat['dimmedColor']}};">
+        </span>
+    </label>                
+    <label for="thermostat" id="thermostatlabel"
+{#    style="color: {{thermostat['color']}};"  #}
+    > auto</label>
+    {% endif %}
+
+    <script type="text/javascript">
+        var countdownTime = {{feedCounter}};  // in s
+        set_countdown(countdownTime)
+    </script>
+
+    <script src="../static/js/raphael-2.1.4.min.js"></script>
+    <script src="../static/js/justgage.js"></script>
+{# does't work: #}
+{#    <script src="{{ url_for('static', filename='js/raphael-2.1.4.min.js') }}" </script>
+    <script src="{{ url_for('static', filename='js/justgage.js') }}" </script> #}
+
+    <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function(event) {
+
+    {% for temperature in temperatures %}
+      new JustGage({
+        id: "{{temperature}}",
+        valueMinFontSize: 14,
+        value: {{temperatures[temperature]['value']}},
+        min: {{temperatureDisplayLimits[0]}},
+        max: {{temperatureDisplayLimits[1]}},
+        title: "{{temperature}}",
+        label: "{{temperatureUnit}}",
+        decimals: 1,
+        titleMinFontSize: 12,
+        titleFontColor: "{{temperatures[temperature]['color']}}",
+        valueFontColor: "{{temperatures[temperature]['color']}}",
+        customSectors: [
+            {"lo": {{temperatureColorSectors[0]["lo"]}},
+             "hi": {{temperatureColorSectors[0]["hi"]}},
+             "color": "{{temperatureColorSectors[0]['color']}}"},
+            {"lo": {{temperatureColorSectors[1]["lo"]}},
+             "hi": {{temperatureColorSectors[1]["hi"]}},
+             "color": "{{temperatureColorSectors[1]['color']}}"},
+            {"lo": {{temperatureColorSectors[2]["lo"]}},
+             "hi": {{temperatureColorSectors[2]["hi"]}},
+             "color": "{{temperatureColorSectors[2]['color']}}"}],
+        levelColorsGradient: false,
+        gaugeWidthScale: 0.75,
+      });
+    {% endfor %}
+
+    {% for dd in [sensorsFromArduino, sensorsFromRaspberry] %}
+      {% for name, sensor in dd.items() %}
+        new JustGage({
+          id: "{{name}}",
+          valueMinFontSize: 14,
+          value: {{sensor['value']}},
+          min: {{sensor['limits'][0]}},
+          max: {{sensor['limits'][1]}},
+          title: "{{name}}",
+          label: "{{sensor['unit']}}",
+          decimals: {{0 if 100 < sensor['value'] else
+                      1 if 10 < sensor['value'] < 100 else
+                      2 if 1 < sensor['value'] < 10 else 3}},
+          titleMinFontSize: 12,
+          titleFontColor: "{{sensor['color']}}",
+          valueFontColor: "{{sensor['color']}}",
+          gaugeWidthScale: 0.75,
+          customSectors: [
+              {"lo": {{sensor['colorSectors'][0]["lo"]}},
+               "hi": {{sensor['colorSectors'][0]["hi"]}},
+               "color": "{{sensor['colorSectors'][0]['color']}}"},
+              {"lo": {{sensor['colorSectors'][1]["lo"]}},
+               "hi": {{sensor['colorSectors'][1]["hi"]}},
+               "color": "{{sensor['colorSectors'][1]['color']}}"},
+              {"lo": {{sensor['colorSectors'][2]["lo"]}},
+               "hi": {{sensor['colorSectors'][2]["hi"]}},
+               "color": "{{sensor['colorSectors'][2]['color']}}"}],
+          levelColorsGradient: false,
+        });
+      {% endfor %}
+    {% endfor %}
+
+    });
+    </script>
+
+    <div id="footer" class="footer">
+        &nbsp;ArdquariumPi {{version}} &copy; 2020 K.Klementiev
+    </div>
+
+  </body>
+</html>

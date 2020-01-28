@@ -1,0 +1,31 @@
+# set your preferred editor as e.g.:
+export EDITOR=/usr/bin/leafpad
+# and edit the crontab task list:
+crontab - e
+## insert there:
+
+### @reboot doesn't work, better via /home/pi/.config/autostart, see read.me
+@reboot python3 /home/pi/ArdquariumPi/db.py
+@reboot sudo python3 /home/pi/ArdquariumPi/ardquariumPi.py
+### end @reboot doesn't work, better via /home/pi/.config/autostart, see read.me
+
+## insert only for initial test:
+* * * * * python3 /home/pi/ArdquariumPi/gpioswitch.py --name light switch --name filter-s switch
+
+## for the normal operation:
+20 7 * * 1-5 /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name light on
+45 8 * * 1-5 /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name light off
+30 9 * * 6,7 /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name light on
+30 17 * * 1-5 /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name light on
+0 23 * * * /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name light off
+
+30 7 * * 1-5 /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name stream on
+40 9 * * 6,7 /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name stream on
+0 23 * * * /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name stream off
+
+0 11 * * * /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name filter-S on
+0 20 * * * /usr/bin/python3 /home/pi/ArdquariumPi/gpioswitch.py --name filter-S off
+
+#########
+check what you have in cron by
+crontab -l
