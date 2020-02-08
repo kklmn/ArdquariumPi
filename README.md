@@ -47,12 +47,14 @@ croniter
 How to run
 ----------
 
-For a test on any computer, run `python3 ardquariumPi.py`, maybe with `sudo`.
-Access the web interface as `localhost` in your browser.
+For a test on any computer, unzip into a suitable location (no `setup.py` is
+provided because the user will need to modify a few files) and run
+`python3 ardquariumPi.py`, maybe with `sudo`. Access the web interface as
+`localhost` in your browser.
 
 For a real run on a Raspberri Pi, unzip into a user-accessible location, e.g.
-`ArdquariumPi` in the `pi` home, and edit `supply.py` and `__secret.py` (set
-`isTest = False`). Edit and upload `arduino/ardquarium/ardquarium.ino` into
-your arduino board if needed. Read files in `autorun` folder and use them. Run
-`sudo python3 ardquariumPi.py`. Access the web interface by the LAN address of
-the Raspberry Pi.
+`ArdquariumPi` in the `pi` home, and edit `supply.py` (where at least set
+`isTest = False`) and `__secret.py` . Edit and upload
+`arduino/ardquarium/ardquarium.ino` into your arduino board if needed. Read
+files in `autorun` folder and use them. Run `sudo python3 ardquariumPi.py`.
+Access the web interface by the LAN address of the Raspberry Pi.
