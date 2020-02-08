@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from .version import __version__, __date__
 __author__ = "Konstantin Klementiev"
 __email__ = "konstantin DOT klementiev AT gmail DOT com"
 __license__ = "MIT license"
+from __version import __version__
 
 import os
 from collections import deque

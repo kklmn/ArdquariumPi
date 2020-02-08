@@ -25,7 +25,7 @@ def init_cron_tasks(isTest=False):
         ['crontab', '-l', '-u', 'pi'],
         stdout=subprocess.PIPE,
         encoding='utf8').communicate()[0]
-    cronTable = [l.split(' ') for l in txt.split("\n")
+    cronTable = [l.strip().split(' ') for l in txt.split("\n")
                  if l and not l.startswith('#') and "gpioswitch" in l]
     if cronTable:
         cronTable = [[' '.join(l[:5]), l[-2], l[-1]] for l in cronTable]
@@ -60,12 +60,10 @@ def get_cron_tasks():
         try:
             if res[what]['prevon'] > res[what]['prevoff']:  # now on
                 res[what]['str'] = 'on by crontab\n{0} – {1}'.format(
-                # res[what]['str'] = '{0}–{1}'.format(
                     res[what]['prevon'].strftime('%H:%M'),
                     res[what]['nextoff'].strftime('%H:%M'))
             else:  # now off
                 res[what]['str'] = 'off by crontab\n{0} – {1}'.format(
-                # res[what]['str'] = '{0}–{1}'.format(
                     res[what]['prevoff'].strftime('%H:%M'),
                     res[what]['nexton'].strftime('%H:%M'))
         except KeyError:

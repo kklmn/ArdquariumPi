@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import datetime
 
-isTest = False  # for tests without Raspberry Pi put True
+isTest = True  # for tests without Raspberry Pi put True
 
 mplColorLoop = [  # used for plotting temperatures
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
