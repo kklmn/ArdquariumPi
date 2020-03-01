@@ -398,6 +398,7 @@ def check_alarms():
         return
     now = datetime.datetime.now()
     alarmTxt = ""
+    interval = supply.intervalBetweenEmails
 
     if 'mains' in supply.wantEmailAlarms:
         if 'mains' in supply.inPinsFromRaspberry:
@@ -428,6 +429,7 @@ def check_alarms():
                     alarmTxt += "BLE is not connected!\n"
             else:
                 supply.lastGoodBLETime = now
+        interval = supply.intervalBetweenEmailsBLE
 
     if 'temperature' in supply.wantEmailAlarms:
         if supply.aveT is None:
@@ -444,8 +446,7 @@ def check_alarms():
                     alarmTxt += u"Dangerous temperature {0:.3f}{1}!".format(
                         supply.aveT, supply.temperatureUnit)
 
-    if alarmTxt and (
-            (now - supply.lastEmailSentTime) > supply.intervalBetweenEmails):
+    if alarmTxt and ((now - supply.lastEmailSentTime) > interval):
         try:
             supply.arduino_alarm(alarmTxt)
             supply.lastEmailSentTime = now

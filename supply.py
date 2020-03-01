@@ -39,7 +39,7 @@ temperatureSource = dict(device='arduino')
 # temperatureSource = dict(device='raspberry', pin=4)
 temperatureDisplayLimits = [25, 31]  # for plots and gauges
 temperatureOutlierLimits = [15, 36]  # for plots and thermostat
-temperatureAlarmLimits = [24, 31]  # for email alarms
+temperatureAlarmLimits = [24, 29.5]  # for email alarms
 temperatureColorSectors = [
     {"lo": 25.0, "hi": 28.0, "color": gaugeColor["lo"]},  # blue, too low
     {"lo": 28.0, "hi": 29.0, "color": gaugeColor["ok"]},  # green, norm
@@ -109,30 +109,33 @@ sensorsFromArduino = OrderedDict(
                        {"lo": 100, "hi": 400, "color": gaugeColor["ok"]},
                        {"lo": 400, "hi": 700, "color": gaugeColor["hi"]}])),
      ('TDS', dict(
-         value=80, limits=[0, 700], unit=u'ppm', color='#88ff88',
-         colorSectors=[{"lo": 0, "hi": 50, "color": gaugeColor["lo"]},
-                       {"lo": 50, "hi": 200, "color": gaugeColor["ok"]},
-                       {"lo": 200, "hi": 350, "color": gaugeColor["hi"]}])),
+         value=60, limits=[0, 100], unit=u'ppm', color='#88ff88',
+         colorSectors=[{"lo": 0, "hi": 25, "color": gaugeColor["lo"]},
+                       {"lo": 25, "hi": 75, "color": gaugeColor["ok"]},
+                       {"lo": 75, "hi": 100, "color": gaugeColor["hi"]}])),
      ])
 inPinsFromArduino = OrderedDict(
     [('mains', dict(state=1, color='#ffffff')),
      ('BLE', dict(state=1, color='#aaaaaa')),
      ])
 
-portArduino = '/dev/ttyUSB*'  # check it with "ls /dev/tty*"
+# USB port where Arduino is connected, check it with "ls /dev/tty*"
+# portArduino = '/dev/ttyUSB*'  # this works with Uno|Nano
+portArduino = '/dev/ttyACM*'  # this works with Nano Every
 portArduinoBaudRate = 115200
 arduinoReadAttempts = 120
 arduinoReadDelay = 1.  # s
-arduinoBootDelay = 10.  # s
+arduinoBootDelay = 12.  # s
 
-wantEmailAlarms = ['arduino', 'temperature', 'mains', 'BLE']
+wantEmailAlarms = ['arduino', 'temperature', 'mains']  # , 'BLE']
 if wantEmailAlarms:
     delayUntilArduinoAlarm = datetime.timedelta(minutes=10)
     delayUntilTemperatureAlarm = datetime.timedelta(minutes=10)
     delayUntilMainsAlarm = datetime.timedelta(minutes=10)
     delayUntilBLEAlarm = datetime.timedelta(hours=2)
     intervalBetweenEmails = datetime.timedelta(minutes=10)
+    intervalBetweenEmailsBLE = datetime.timedelta(hours=1)
 
-wantCronTable = True  # add switch time from crontable for each pin in the table
+wantCronTable = True  # show switch time from crontable for each pin in the table
 
-dbInterval = 5. if not isTest else 2.  # database write interval in sec
+dbInterval = 10. if not isTest else 2.  # database write interval in sec

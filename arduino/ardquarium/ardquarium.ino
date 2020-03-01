@@ -25,7 +25,9 @@
 #define UREF 5.00  // voltage for analogue sensors 
 
 #define sampleInterval 200  // all in ms
-#define reportInterval 5000  // don't put it too long: it would need more memory and may fail at the compilation
+#define reportInterval 10000  // don't make it too long: it would need more memory and may fail at the compilation
+//I recommend on Uno|Nano: 5000, on Nano Every can be increased to 10000
+
 #define raspberryAliveWaitBeforeAlarm 100000 //  > raspberry boot time
 #define mainsStateWaitBeforeAlarm 100000
 #define alarmInterval 600000  // send next SMS not sooner than in 600 sec
@@ -44,7 +46,7 @@ OneWire oneWire(oneWirePin);
 DallasTemperature sensors(&oneWire);
 byte numberOf1WDevices;
 # define MAXnumberOf1WDevices 4
-float temperatureSamples[MAXnumberOf1WDevices][arrayLength]={0};
+float temperatureSamples[MAXnumberOf1WDevices][arrayLength] = {0};
 float temperatureAve[MAXnumberOf1WDevices];
 float temperatureGlobal;
 
@@ -64,7 +66,7 @@ void setup_temperatures(void) {
 void get_temperatures(void) {
   float temp = 0;
   sensors.requestTemperatures();
-  for (int iT=0; iT<numberOf1WDevices; iT++) {
+  for (int iT = 0; iT < numberOf1WDevices; iT++) {
     if (sensors.getAddress(tempDeviceAddress, iT)) {
       temp = sensors.getTempC(tempDeviceAddress);
     }
@@ -88,15 +90,15 @@ void _count() {  // ~30 cps
 void setup_counter(void) {
   // we count when falling from HIGH, otherwise flowRatePin needs a pulldown resistor
   pinMode(flowRatePin, INPUT);
-  digitalWrite(flowRatePin, HIGH);  # pullup is applied here
+  digitalWrite(flowRatePin, HIGH);  // pullup is applied here
   then = millis();
   attachInterrupt(digitalPinToInterrupt(flowRatePin), _count, FALLING);
 }
 
 void get_flow_rate(void) {
   now = millis();
-  if (now-then > 0) {
-    float freq = float(pulseCounter) / (now-then) * 1000;  // Hz
+  if (now - then > 0) {
+    float freq = float(pulseCounter) / (now - then) * 1000; // Hz
     flowRate = freq / 5.5 * 60;  // L/h
   } else {
     flowRate = 0;
@@ -109,7 +111,7 @@ void get_flow_rate(void) {
 // for analog pH
 float volt_pH, val_pH;
 float offset_pH = 7.0 - 6.93;  // as measured
-int phArray[arrayLength]={0};
+int phArray[arrayLength] = {0};
 int phSum;
 
 void get_analog_pH() {
@@ -117,8 +119,8 @@ void get_analog_pH() {
 }
 
 void get_val_pH() {
-  val_pH = 3.5*volt_pH + offset_pH;  // https://wiki.dfrobot.com/PH_meter_SKU__SEN0161_
-  
+  val_pH = 3.5 * volt_pH + offset_pH; // https://wiki.dfrobot.com/PH_meter_SKU__SEN0161_
+
 }
 // end for analog pH
 
@@ -126,7 +128,7 @@ void get_val_pH() {
 #include <DFRobot_EC.h> // https://github.com/DFRobot/DFRobot_EC/archive/master.zip
 DFRobot_EC ec;
 float volt_EC, val_EC;
-int ecArray[arrayLength]={0};
+int ecArray[arrayLength] = {0};
 int ecSum;
 
 void setup_analog_EC(void) {
@@ -139,13 +141,13 @@ void get_analog_EC() {
 
 void get_val_EC() {
   // in µS/cm:
-  val_EC = ec.readEC(volt_EC*1000, temperatureGlobal)*1000;  // https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300
+  val_EC = ec.readEC(volt_EC * 1000, temperatureGlobal) * 1000; // https://wiki.dfrobot.com/Gravity__Analog_Electrical_Conductivity_Sensor___Meter_V2__K%3D1__SKU_DFR0300
 }
 // end for analog EC
 
 // for analog TDS
 float volt_TDS, val_TDS;
-int tdsArray[arrayLength]={0};
+int tdsArray[arrayLength] = {0};
 int tdsSum;
 
 void get_analog_TDS() {
@@ -154,11 +156,11 @@ void get_analog_TDS() {
 
 void get_val_TDS() {
   // in ppm or mg/L:
-  float compensationCoefficient = 1.0 + 0.02*(temperatureGlobal-25.0);
+  float compensationCoefficient = 1.0 + 0.02 * (temperatureGlobal - 25.0);
   float compensationVolatge = volt_TDS / compensationCoefficient;
-  val_TDS = (133.42*compensationVolatge*compensationVolatge*compensationVolatge -
-             255.86*compensationVolatge*compensationVolatge +
-             857.39*compensationVolatge)*0.5;  // https://wiki.keyestudio.com/KS0429_keyestudio_TDS_Meter_V1.0
+  val_TDS = (133.42 * compensationVolatge * compensationVolatge * compensationVolatge -
+             255.86 * compensationVolatge * compensationVolatge +
+             857.39 * compensationVolatge) * 0.5; // https://wiki.keyestudio.com/KS0429_keyestudio_TDS_Meter_V1.0
 }
 // end for analog TDS
 
@@ -182,7 +184,7 @@ void get_BLE_state() {
 
 // for LCD
 #include <LiquidCrystal_PCF8574.h> // by Matthias Hertel
-#include <Wire.h> 
+#include <Wire.h>
 LiquidCrystal_PCF8574 lcd(0x27); // address 0x27
 char lcdmsg[5];
 byte numBytes;
@@ -221,7 +223,7 @@ void print_to_lcd16x2() {
   dtostrf(flowRate, 4, 1, lcdmsg);
   lcd.print(lcdmsg);
   lcd.print("L/min");
-  
+
   lcd.print("  pH");
   dtostrf(val_pH, 3, 1, lcdmsg);
   lcd.print(lcdmsg);
@@ -232,14 +234,14 @@ void print_to_lcd20x4() {
   float tempOut;
 
   lcd.setCursor(0, 0);
-  for (int iT=0; iT<numberOf1WDevices; iT++) {
+  for (int iT = 0; iT < numberOf1WDevices; iT++) {
     tempOut = temperatureAve[iT];
     // uncomment if needed in Fahrenheit:
     // tempOut = DallasTemperature::toFahrenheit(tempOut);
     dtostrf(tempOut, 4, 1, lcdmsg);
-    lcd.setCursor(iT*5, 0);
+    lcd.setCursor(iT * 5, 0);
     lcd.print(lcdmsg);
-  }  
+  }
   lcd.print("C");
 
   lcd.setCursor(0, 1);
@@ -260,7 +262,7 @@ void print_to_lcd20x4() {
   lcd.print("S/cm");
 
   lcd.print("  BLE ");
-  if (BLEstate==1) lcd.print("on "); else lcd.print("off");
+  if (BLEstate == 1) lcd.print("on "); else lcd.print("off");
 
   lcd.setCursor(0, 3);
   lcd.print("TDS");
@@ -269,7 +271,7 @@ void print_to_lcd20x4() {
   lcd.print("ppm");
 
   lcd.print(" mains ");
-  if (mainsState==1) lcd.print("on "); else lcd.print("off");
+  if (mainsState == 1) lcd.print("on "); else lcd.print("off");
 }
 // end for LCD
 
@@ -283,7 +285,7 @@ void setup(void) {
   setup_counter(); // flow rate
   setup_analog_EC();
 
-  BTserial.begin(9600);  
+  BTserial.begin(9600);
 
   pinMode(mainsStatePin, INPUT);
   pinMode(BLEstatePin, INPUT);
@@ -301,10 +303,10 @@ void setup(void) {
 void average_and_get_states() {
   float temperatureSumAll = 0;
   int numberOfValidTsAll = 0;
-  for (int iT=0; iT<numberOf1WDevices; iT++) {
+  for (int iT = 0; iT < numberOf1WDevices; iT++) {
     float temperatureSum = 0;
     float numberOfValidTs = 0;
-    for (int i=0; i<usedArrayLength; i++) {
+    for (int i = 0; i < usedArrayLength; i++) {
       float temp = temperatureSamples[iT][i];
       if ((temp > validTemperatureLo) && (temp < validTemperatureHi)) {
         temperatureSum += temp;
@@ -314,7 +316,7 @@ void average_and_get_states() {
     if (numberOfValidTs > 0) {
       temperatureAve[iT] = temperatureSum / numberOfValidTs;
     } else {
-      temperatureAve[iT] = badTemperature; 
+      temperatureAve[iT] = badTemperature;
     }
     temperatureSumAll += temperatureSum;
     numberOfValidTsAll += numberOfValidTs;
@@ -328,21 +330,21 @@ void average_and_get_states() {
   get_flow_rate();
 
   phSum = 0;
-  for (int i=0; i<usedArrayLength; i++)
+  for (int i = 0; i < usedArrayLength; i++)
     phSum += phArray[i];
-  volt_pH = float(phSum)/usedArrayLength * UREF/1024;
+  volt_pH = float(phSum) / usedArrayLength * UREF / 1024;
   get_val_pH();
 
   ecSum = 0;
-  for (int i=0; i<usedArrayLength; i++)
+  for (int i = 0; i < usedArrayLength; i++)
     ecSum += ecArray[i];
-  volt_EC = float(ecSum)/usedArrayLength * UREF/1024;
+  volt_EC = float(ecSum) / usedArrayLength * UREF / 1024;
   get_val_EC();
 
   tdsSum = 0;
-  for (int i=0; i<usedArrayLength; i++)
+  for (int i = 0; i < usedArrayLength; i++)
     tdsSum += tdsArray[i];
-  volt_TDS = float(tdsSum)/usedArrayLength * UREF/1024;
+  volt_TDS = float(tdsSum) / usedArrayLength * UREF / 1024;
   get_val_TDS();
 
   get_mains_state();
@@ -383,7 +385,7 @@ void check_alarms(void) {
 void report_results(void) {
   now = millis();
 
-// comment out when testing
+  // comment out when testing
   if (lastAlarm & 1) {  // no raspberry
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -401,7 +403,7 @@ void report_results(void) {
       lcd.print(" sec");
     }
   }
-// end comment out when testing
+  // end comment out when testing
 
   if ((lastAlarm & 2) && (BLEstate == 1)) {  // no mains
     if ((now - lastAlarmTime) >= alarmInterval) {
@@ -410,7 +412,7 @@ void report_results(void) {
     }
   }
 
-  for (int iT=0; iT<numberOf1WDevices; iT++) {
+  for (int iT = 0; iT < numberOf1WDevices; iT++) {
     Serial.print(temperatureAve[iT], 3);
     Serial.print("\t");
   }
@@ -432,12 +434,12 @@ void report_results(void) {
   Serial.print(BLEstate);
   Serial.println();
 
-// comment out when testing
+  // comment out when testing
   if (lastAlarm & 1)  // no raspberry
     return;
-// end comment out when testing
+  // end comment out when testing
 
-//  print_to_lcd16x2();
+  //  print_to_lcd16x2();
   print_to_lcd20x4();
 }
 
