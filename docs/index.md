@@ -4,7 +4,7 @@
 
 Shown below is an Arduino system that I have built for my aquarium. 
 
-![](images/arduino.jpg){:height="50%" width="50%"}
+![](images/arduino.jpg){:height="100%" width="100%"}
 
 Here I utilize
 - Arduino Nano Every,
@@ -27,15 +27,15 @@ IDE.
 I use Raspberry Pi 4/B as passively cooled, with a UPS hat (PiJuice) and a GPIO
 connector hat, see below.
 
-![](images/RPi1.jpg){:height="50%" width="50%"}
+![](images/RPi1.jpg){:height="100%" width="100%"}
 
-![](images/RPi2.jpg){:height="50%" width="50%"}
+![](images/RPi2.jpg){:height="100%" width="100%"}
 
 The GPIO pins are wired to an 8-Relais Module that controls 8 power sockets.
 The relais and the sockets form a single unit with all the high voltage wires
 encapsulated in it.
 
-![](images/complete.jpg){:height="50%" width="50%"}
+![](images/complete.jpg){:height="75%" width="75%"}
 
 I have an old phone located close to the Arduino that is connected via BLE. It
 has a cheap pre-paid SIM card and can send alarm texts. Quite a problem is that
