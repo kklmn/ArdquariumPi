@@ -137,10 +137,10 @@ wanted, set "enabled = False" in "camera.py".
 ### CSS colors
 
 The default dark color theme can be changed in the two css files in
-`static/css`, where one can comment/uncomment a block of color definitions.
+"static/css", where one can comment/uncomment a block of color definitions.
 
 ### Phone app in MIT App Inventor
 
 Tested only in Android but probably is also usable in iOS. Import the source
-from `MIT app inventor`, a block diagram is also given in a png file. Build it,
+from "MIT app inventor", a block diagram is also given in a png file. Build it,
 load to the phone and use it.
