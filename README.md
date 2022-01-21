@@ -64,4 +64,4 @@ Software
 Documentation
 -------------
 
-See detailed instructions [here](kklmn.github.io/ArdquariumPi).
+See detailed instructions [here](https://kklmn.github.io/ArdquariumPi/).
