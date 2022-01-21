@@ -103,6 +103,10 @@ Here is my example, there are several similar options available on the market.
 Create an account at ifttt.com. Create an applet. In “if this” part add Google
 Assistant, with “a simple phrase” option:
 
+![](ifttt1.png)
+
+![](/ifttt1.png)
+
 ![](/_images/ifttt1.png)
 
 ![](_images/ifttt1.png)
