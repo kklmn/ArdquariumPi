@@ -103,12 +103,10 @@ Here is my example, there are several similar options available on the market.
 Create an account at ifttt.com. Create an applet. In “if this” part add Google
 Assistant, with “a simple phrase” option:
 
-![a](ifttt1.png){:height="50%" width="50%"}
-
-![b](images/ifttt1t.png){:height="50%" width="50%"}
+![](images/ifttt1.png){:height="40%" width="40%"}
 
 In “then that” add a webhook with:
-![ifttt applet, "then that" part](/docs/_images/ifttt2.png)
+![](images/ifttt2.png){:height="40%" width="40%"}
 
 Use any pin name in the json data, as defined in "supply.py".
 
