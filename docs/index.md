@@ -102,13 +102,12 @@ Here is my example, there are several similar options available on the market.
 
 Create an account at ifttt.com. Create an applet. In “if this” part add Google
 Assistant, with “a simple phrase” option:
-![](docs/_images/ifttt1.png)
-
-![](/docs/_images/ifttt1.png)
 
 ![](/_images/ifttt1.png)
 
 ![](_images/ifttt1.png)
+
+![](./_images/ifttt1.png)
 
 In “then that” add a webhook with:
 ![ifttt applet, "then that" part](/docs/_images/ifttt2.png)
