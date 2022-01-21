@@ -1,3 +1,5 @@
+# ArdquariumPi
+
 ## Hardware
 
 Shown below is an Arduino system that I have built for my aquarium. 
@@ -102,6 +104,8 @@ Create an account at ifttt.com. Create an applet. In “if this” part add Goog
 Assistant, with “a simple phrase” option:
 
 ![a](ifttt1.png){:height="50%" width="50%"}
+
+![b](images/ifttt1t.png){:height="50%" width="50%"}
 
 In “then that” add a webhook with:
 ![ifttt applet, "then that" part](/docs/_images/ifttt2.png)
