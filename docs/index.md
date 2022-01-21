@@ -1,5 +1,3 @@
-# ArdquariumPi
-
 ## Hardware
 
 Shown below is an Arduino system that I have built for my aquarium. 
