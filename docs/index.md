@@ -19,6 +19,8 @@ Here I utilize
 - BLE module HM10,
 - a 20×4 LCD display (a 16×2 display is also possible and was used earlier).
 
+![](images/arduino_screen.jpg){:height="50%" width="50%"}
+
 When I was building the system, I connected the devices one by one and tested
 them with the supplied test scripts, find them in "arduino" folder. A Windows
 computer and a Raspberry Pi computer are equally good for running the Arduino
@@ -27,9 +29,7 @@ IDE.
 I use Raspberry Pi 4/B as passively cooled, with a UPS hat (PiJuice) and a GPIO
 connector hat, see below.
 
-![](images/RPi1.jpg){:height="100%" width="100%"}
-
-![](images/RPi2.jpg){:height="100%" width="100%"}
+![](images/RPi.jpg){:height="100%" width="100%"}
 
 The GPIO pins are wired to an 8-Relais Module that controls 8 power sockets.
 The relais and the sockets form a single unit with all the high voltage wires
@@ -141,6 +141,8 @@ The default dark color theme can be changed in the two css files in
 
 ### Phone app in MIT App Inventor
 
-Tested only in Android but probably is also usable in iOS. Import the source
-from "MIT app inventor", a block diagram is also given in a png file. Build it,
-load to the phone and use it.
+A block diagram of the app can be seen as a png file. Tested only in Android
+but can be built also in iOS. Import the source to "MIT app inventor", build
+it, load to yuor phone and sart it. Press 'Scan'. When it finds 'MNSoft-xx',
+press 'Stop Scan', select the device and press 'Connect'. Give your phone
+number to send alarm texts to.
