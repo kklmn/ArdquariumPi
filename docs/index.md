@@ -19,14 +19,14 @@ Here I utilize
 - BLE module HM10,
 - a 20×4 LCD display (a 16×2 display is also possible and was used earlier).
 
-![](images/arduino_screen.jpg){:height="50%" width="50%"}
+![](images/arduino_screen.jpg){:height="33%" width="33%"}
 
 When I was building the system, I connected the devices one by one and tested
 them with the supplied test scripts, find them in "arduino" folder. A Windows
 computer and a Raspberry Pi computer are equally good for running the Arduino
 IDE.
 
-I use Raspberry Pi 4/B as passively cooled, with a UPS hat (PiJuice) and a GPIO
+I use Raspberry Pi 4B as passively cooled, with a UPS hat (PiJuice) and a GPIO
 connector hat, see below.
 
 ![](images/RPi.jpg){:height="100%" width="100%"}
@@ -38,7 +38,7 @@ encapsulated in it.
 ![](images/complete.jpg){:height="75%" width="75%"}
 
 I have an old phone located close to the Arduino that is connected via BLE. It
-has a cheap pre-paid SIM card and can send alarm texts. Quite a problem is that
+has a cheap pre-paid SIM card and enables alarm texts. Quite a problem is that
 the phone may drop the BLE connection when the screen goes to energy saving
 mode. On this particular phone the problem was solved by disabling the energy
 saving mode.
@@ -47,7 +47,8 @@ saving mode.
 
 ArdquariumPi was tested on Raspberry Pi OS Bullseye (Debian 11) and earlier on
 Raspberry Pi OS Buster (Debian 10). It should run on other desktops as well,
-e.g. Ubuntu Desktop, except the camera functionality may fail there.
+e.g. Ubuntu Desktop, except the camera functionality may have to be adjusted
+there.
 
 I recommend running Raspberry Pi OS in the desktop mode, not the CLI mode, as
 one can utilize several useful desktop facilities there, such as pijuice GUI,
@@ -77,7 +78,7 @@ For a test of the web GUI on any computer, unzip into a suitable location "cd"
 to that folder and run `python3 ardquariumPi.py` right out of box, maybe with
 `sudo`. Access the web interface as "localhost" in your browser.
 
-For a real run on a Raspberri Pi, unzip into a user-accessible location, e.g.
+For a real run on a Raspberri Pi, unzip into a user-accessible folder, e.g.
 "ArdquariumPi" in the "pi" home, and edit "supply.py" (this is where you
 describe your connected devices) and "__secret.py" (if you want emails,
 external access and external web hooks). Edit and upload
@@ -86,9 +87,9 @@ probably the heaviest task. Read files in "autorun" folder and use them. Run
 `sudo python3 ardquariumPi.py`. Access the web interface by the LAN address of
 the Raspberry Pi.
 
-If you want to be able to access the web GUI remotely or you want to integrate
-a voice assistant, edit "ardquariumPi.py". Set "allowRemote = True" and add
-"trustedProxies" if wanted. Specify a fixed address for your Raspberry Pi and
+If you want to access the web GUI remotely or you want to integrate a voice
+assistant, edit "ardquariumPi.py". Set "allowRemote = True" and add
+"trustedProxies" if needed. Specify a fixed address for your Raspberry Pi and
 enable port forwarding in your router for http (port 80).
 
 ### Remote connection security
@@ -100,9 +101,9 @@ Remote connection to the web GUI is granted to all LAN devices, this can be
 changed by "trustedAddresses" in "ardquariumPi.py". An unknown remote device
 will be redirected to a login page; the credentials must match those specified
 in "__secret.py". After "userAttemptsMax" attempts the remote address is
-blocked. A trusted address remains trusted forever (for the duration of the
-python session). Remote connections are reported in the GUI list of messages,
-printed out in the terminal and saved in the application log file.
+blocked forever. A trusted address remains trusted forever (for the duration of
+the python session). Remote connections are reported in the GUI list of
+messages, printed out in the terminal and saved in the application log file.
 
 ### Integration with a voice assistant
 
@@ -137,12 +138,13 @@ wanted, set "enabled = False" in "camera.py".
 ### CSS colors
 
 The default dark color theme can be changed in the two css files in
-"static/css", where one can comment/uncomment a block of color definitions.
+"static/css", where one can comment/uncomment a block of color definitions at
+the top of the files.
 
 ### Phone app in MIT App Inventor
 
 A block diagram of the app can be seen as a png file. Tested only in Android
 but can be built also in iOS. Import the source to "MIT app inventor", build
-it, load to yuor phone and sart it. Press 'Scan'. When it finds 'MNSoft-xx',
+it, load to your phone and start it. Press 'Scan'. When it finds 'MNSoft-xx',
 press 'Stop Scan', select the device and press 'Connect'. Give your phone
 number to send alarm texts to.
