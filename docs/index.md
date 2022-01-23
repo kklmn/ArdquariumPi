@@ -38,7 +38,7 @@ encapsulated in it.
 ![](images/complete.jpg){:height="75%" width="75%"}
 
 I have an old phone located close to the Arduino that is connected via BLE. It
-has a cheap pre-paid SIM card and enables alarm texts. Quite a problem is that
+has a cheap pre-paid SIM card that enables alarm texts. Quite a problem is that
 the phone may drop the BLE connection when the screen goes to energy saving
 mode. On this particular phone the problem was solved by disabling the energy
 saving mode.
@@ -53,7 +53,7 @@ there.
 I recommend running Raspberry Pi OS in the desktop mode, not the CLI mode, as
 one can utilize several useful desktop facilities there, such as pijuice GUI,
 Arduino IDE, text editors and file managers. For this, enable boot to Desktop,
-and edit "boot/config.txt": "hdmi_force_hotplug=1" for running Raspberry Pi
+and edit "boot/config.txt": set "hdmi_force_hotplug=1" for running Raspberry Pi
 without a screen. Enable the VNC service, and run your Raspberry Pi desktop
 remotely. Use a remote file manager (I use Filezilla or Secure FTP of Total
 Commander) to copy files to/from Raspberry Pi.
@@ -101,9 +101,10 @@ Remote connection to the web GUI is granted to all LAN devices, this can be
 changed by "trustedAddresses" in "ardquariumPi.py". An unknown remote device
 will be redirected to a login page; the credentials must match those specified
 in "__secret.py". After "userAttemptsMax" attempts the remote address is
-blocked forever. A trusted address remains trusted forever (for the duration of
-the python session). Remote connections are reported in the GUI list of
-messages, printed out in the terminal and saved in the application log file.
+blocked forever (for the duration of the python session). A trusted address
+remains trusted forever (for the duration of the python session). Remote
+connections are reported in the GUI list of messages, printed out in the
+terminal and saved in the application log file.
 
 ### Integration with a voice assistant
 
