@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+__author__ = "Konstantin Klementiev"
+__date__ = "22 Jan 2022"
+
 import glob
 import time
 import datetime
@@ -7,7 +10,8 @@ import numpy as np
 import requests
 import supply
 import logging
-import os, sys
+import sys
+import os
 if sys.platform.lower() == "win32":
     os.system('color')
 
@@ -22,7 +26,7 @@ if not supply.isTest:
 shouldPostToLocalhost = False  # the host server will set True when it starts
 
 
-class PrintStyle():
+class PrintStyle:
     BLACK = lambda x: '\033[30m' + str(x)
     RED = lambda x: '\033[31m' + str(x)
     GREEN = lambda x: '\033[32m' + str(x)
@@ -112,11 +116,11 @@ def init_devices():
         sensor['kind'][1] for sensor in supply.sensorsFromRaspberry.values()
         if sensor['kind'][0].startswith('cou')]
     if len(counterSensorsFromRaspberry) > 0:
-        pulseCounter = \
+        supply.pulseCounter = \
             {c: [0, 0, time.time()] for c in counterSensorsFromRaspberry}
 
         def _count(channel):
-            pulseCounter[channel][0] += 1
+            supply.pulseCounter[channel][0] += 1
 
         for sensor in counterSensorsFromRaspberry:
             GPIO.setup(sensor, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -135,6 +139,7 @@ def init_supply():
     supply.lastGoodTemperatureTime = now
     supply.lastGoodMainsTime = now
     supply.lastGoodBLETime = now
+    supply.lastNoLeakTime = now
     supply.lastEmailSentTime = now
     supply.aveT = None
     supply.feedStartTime = None
@@ -236,8 +241,8 @@ def _read_from_arduino(insist=True, attempt=0):
                 raise ValueError('Arduino not ready')
         buf = supply.arduinoSerial.readline()
         try:
-            res = [float(v) for v in buf.split()]
-        except ValueError:
+            res = [eval(v) for v in buf.split()]
+        except (ValueError, NameError):
             bufOut = buf[:-2].decode()  # trailing \r\n
             try:
                 if "temperature device" in bufOut:
@@ -268,6 +273,7 @@ def _read_from_arduino(insist=True, attempt=0):
         try:
             supply.arduinoSerial.close()
             arduinoFolder = glob.glob(supply.portArduino)[0]
+            print('Encountered: {0}'.format(e))
             print('Arduino rebooting attempt #{0}'.format(attempt+1))
             supply.arduinoSerial = supply.serial.Serial(
                 arduinoFolder, supply.portArduinoBaudRate,
@@ -333,12 +339,12 @@ def get_sensors(insist=True):
             channel = sensor['kind'][1]
             if sensor['kind'][0].startswith('cou'):
                 now = time.time()
-                ct = pulseCounter[channel][0]
-                ct0 = pulseCounter[channel][1]
-                then = pulseCounter[channel][2]
+                ct = supply.pulseCounter[channel][0]
+                ct0 = supply.pulseCounter[channel][1]
+                then = supply.pulseCounter[channel][2]
                 rate = (ct - ct0) / (now - then)
-                pulseCounter[channel][1] = ct
-                pulseCounter[channel][2] = now
+                supply.pulseCounter[channel][1] = ct
+                supply.pulseCounter[channel][2] = now
                 if key == 'flow':
                     sensor['value'] = rate / 5.5 * 60  # L/h
             if sensor['kind'][0].startswith('spi'):
@@ -398,6 +404,7 @@ def check_alarms():
         return
     now = datetime.datetime.now()
     alarmTxt = ""
+    alarmMsg = ""
     interval = supply.intervalBetweenEmails
 
     if 'mains' in supply.wantEmailAlarms:
@@ -409,9 +416,10 @@ def check_alarms():
             mainsDict = None
         if mainsDict is not None:
             if mainsDict['state'] == 0:
-                if ((now - supply.lastGoodMainsTime) >
+                if ((now-supply.lastGoodMainsTime) >
                         supply.delayUntilMainsAlarm):
-                    alarmTxt += "The power supply is off!\n"
+                    alarmTxt += "Power is off!\n"
+                    alarmMsg = "Sent email on power off"
             else:
                 supply.lastGoodMainsTime = now
 
@@ -424,18 +432,33 @@ def check_alarms():
             bleDict = None
         if bleDict is not None:
             if bleDict['state'] == 0:
-                if ((now - supply.lastGoodBLETime) >
-                        supply.delayUntilBLEAlarm):
+                if ((now-supply.lastGoodBLETime) > supply.delayUntilBLEAlarm):
                     alarmTxt += "BLE is not connected!\n"
+                    alarmMsg = "Sent email on BLE off"
             else:
                 supply.lastGoodBLETime = now
-        interval = supply.intervalBetweenEmailsBLE
+
+    if 'leak' in supply.wantEmailAlarms:
+        if 'leak' in supply.inPinsFromRaspberry:
+            leakDict = supply.inPinsFromRaspberry['leak']
+        elif 'leak' in supply.inPinsFromArduino:
+            leakDict = supply.inPinsFromArduino['leak']
+        else:
+            leakDict = None
+        if leakDict is not None:
+            if leakDict['state'] > 0:
+                if ((now-supply.lastNoLeakTime) > supply.delayUntilLeakAlarm):
+                    alarmTxt += "Leak is detected!\n"
+                    alarmMsg = "Sent email on leak detected"
+            else:
+                supply.lastNoLeakTime = now
 
     if 'temperature' in supply.wantEmailAlarms:
         if supply.aveT is None:
             if ((now - supply.lastGoodTemperatureTime) >
                     supply.delayUntilTemperatureAlarm):
-                alarmTxt += u"All temperature readings are bad!"
+                alarmTxt += u"All temperature readings are bad!\n"
+                alarmMsg = "Sent email on all Ts bad"
         else:
             if (supply.temperatureAlarmLimits[0] < supply.aveT <
                     supply.temperatureAlarmLimits[1]):
@@ -443,13 +466,18 @@ def check_alarms():
             else:
                 if ((now - supply.lastGoodTemperatureTime) >
                         supply.delayUntilTemperatureAlarm):
-                    alarmTxt += u"Dangerous temperature {0:.3f}{1}!".format(
+                    alarmTxt += u"Dangerous temperature {0:.3f}{1}!\n".format(
                         supply.aveT, supply.temperatureUnit)
+                    alarmMsg = "Sent email on dangerous T"
 
     if alarmTxt and ((now - supply.lastEmailSentTime) > interval):
         try:
             supply.arduino_alarm(alarmTxt)
+            print(alarmTxt)
             supply.lastEmailSentTime = now
+            dictToSend = {"info": alarmMsg}
+            if shouldPostToLocalhost:
+                requests.post('http://localhost:80', json=dictToSend)
         except Exception as e:
             logging.error(e)
 

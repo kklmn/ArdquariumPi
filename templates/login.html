@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title>Login page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/main.css') }}">
+  </head>
+  <body>
+    <div class="textbox">
+      <h2>This is a private aquarium control page</h2>
+      <h2>Nothing interesting for a random visitor</h2>
+      <br>
+      <form action="" method="post">
+        <input type="text" placeholder="Username" name="username" value="{{
+          request.form.username }}">
+        <input type="password" placeholder="Password" name="password" value="{{
+          request.form.password }}">
+        <input class="viewbutton" type="submit" value="Login">
+      </form>
+    </div>
+  </body>
+</html>

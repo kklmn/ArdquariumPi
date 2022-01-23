@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 __author__ = "Konstantin Klementiev"
-__date__ = "04 Jul 2019"
+__date__ = "11 Jan 2022"
 
 isTest = False  # put True for running this module as main
 
+import os.path as osp
 import base64
 from io import BytesIO
 import matplotlib as mpl
@@ -19,12 +20,12 @@ from collections import OrderedDict
 
 import supply
 
-timedeltas = OrderedDict([
+timeDeltas = OrderedDict([
     (u"½h", {'minutes': 30}), ("4h", {'hours': 4}), ("1d", {'days': 1}),
     ("1w", {'days': 7}), ("1m", {'days': 30}), ("6m", {'days': 180}),
     ("all", None)])
 # currentdelta = u"½h"
-currentdelta = "4h"
+currentDelta = "4h"
 # yrange = "user"  # can be "auto"
 yrange = "auto"  # can be "user"
 
@@ -34,7 +35,7 @@ ioKeys = (list(supply.outPins.keys()) +
 ioValues = (list(supply.outPins.values()) +
             list(supply.inPinsFromRaspberry.values()) +
             list(supply.inPinsFromArduino.values()))
-pColors = [rec['color'] for rec in ioValues]
+pColors = [rec['color'] for rec in ioValues if 'color' in rec]
 tColors = [rec['color'] for rec in supply.temperatures.values()]
 aColors = [rec['color'] for rec in supply.sensorsFromArduino.values()]
 rColors = [rec['color'] for rec in supply.sensorsFromRaspberry.values()]
@@ -49,6 +50,31 @@ rLimits = [rec['limits'] for rec in supply.sensorsFromRaspberry.values()]
 lw = 0.5  # linewidth
 ms = 1.0  # markersize
 alpha = 0.5
+
+facecolor = '#444'
+spinecolor = '#eee'
+cssName = osp.join(
+    osp.dirname(osp.abspath(__file__)), 'static', 'css', 'main.css')
+inComment = 0
+with open(cssName, 'r') as f:
+    for line in f.readlines():
+        if '/*' in line:
+            inComment += 1
+        if '*/' in line:
+            inComment -= 1
+        if inComment:
+            continue
+
+        pos = line.find("--color-bright-text:")
+        if pos > -1:
+            spinecolor = line[line.find(":")+1: line.find(";")].strip()
+        pos = line.find("--color-panel:")
+        if pos > -1:
+            facecolor = line[line.find(":")+1: line.find(";")].strip()
+if len(facecolor) == 4:
+    facecolor = '#' + ''.join(i*2 for i in facecolor[1:])
+if len(spinecolor) == 4:
+    spinecolor = '#' + ''.join(i*2 for i in spinecolor[1:])
 
 
 def versiontuple(v):
@@ -72,12 +98,11 @@ def color_text(x, y, strings, states, colors, ax, **kwargs):
 def make_plots_mpl(data, timeDeltaDict=None):
     times = [d[0] for d in data]
 
-    nax = len(aNames) + len(rNames) + 2  # "2" are Ts and heater/cooler plots
+    nTplot = 1 + ((len(supply.temperatures)-1) // 2)
+    nax = len(aNames) + len(rNames)
 
-    facecolor = '#444444'  # = ".flex-container > div" in main_style.css
-    spinecolor = '#eeeeee'
     plotWidth = 3.6
-    plotHeight = 0.72 * (nax+0.5)
+    plotHeight = 0.8 * (len(aNames) + len(rNames) + nTplot)
     minPlotHeight = len(supply.outPins) * 0.42  # inch
     plotHeight = max(plotHeight, minPlotHeight)
     dpi = 100
@@ -86,15 +111,15 @@ def make_plots_mpl(data, timeDeltaDict=None):
     if not isTest:
         canvas = FigureCanvasAgg(fig)  # noqa
 
-    kwmpl = {}
+    kw = {}
     if versiontuple(mpl.__version__) >= versiontuple("2.0.0"):
-        kwmpl['facecolor'] = facecolor
+        kw['facecolor'] = facecolor
     else:
-        kwmpl['axisbg'] = facecolor
+        kw['axisbg'] = facecolor
     gs = gridspec.GridSpec(
-        nax, 1, height_ratios=[4]+[2 for i in range(nax-2)]+[1])
-    ax0 = fig.add_subplot(gs[0], **kwmpl)
-    axi = [fig.add_subplot(gs[i], sharex=ax0, **kwmpl) for i in range(1, nax)]
+        nax+2, 1, height_ratios=[2*nTplot]+[2 for i in range(nax)]+[1])
+    ax0 = fig.add_subplot(gs[0], **kw)
+    axi = [fig.add_subplot(gs[i], sharex=ax0, **kw) for i in range(1, nax+2)]
     for ax in [ax0] + axi:
         for spine in ['bottom', 'top', 'left', 'right']:
             ax.spines[spine].set_color(spinecolor)
@@ -107,7 +132,7 @@ def make_plots_mpl(data, timeDeltaDict=None):
     for ax in axi:
         ax.tick_params(axis="x", labeltop=False, **tp)
     ax0.tick_params(axis="x", labeltop=True, **tp)
-    axi[-1].set_xlabel(u'date/time', fontsize=13)
+    axi[-1].set_xlabel(u'date time', fontsize=13)
 
     axt = ax0  # temperature axes
     axs = axi[-1]  # state axes
@@ -120,6 +145,8 @@ def make_plots_mpl(data, timeDeltaDict=None):
         lo = supply.temperatureOutlierLimits
         times0 = [t for t, d in zip(times, datat) if lo[0] < d < lo[1]]
         datat0 = [d for t, d in zip(times, datat) if lo[0] < d < lo[1]]
+        # td = [(t, d) for t, d in zip(times, datat) if lo[0] < d < lo[1]]
+        # times0, datat0 = zip(*td)
         axt.plot(times0, datat0, 'o-', lw=lw, color=color, alpha=alpha,
                  ms=ms, markeredgecolor=color)
 
@@ -128,11 +155,12 @@ def make_plots_mpl(data, timeDeltaDict=None):
         ax.plot(times, datao, 'o-', lw=lw, color=color, alpha=alpha,
                 ms=ms, markeredgecolor=color)
 
-    ioNames = ['heater', 'cooler', 'mains', 'BLE']
+    ioNames = supply.plotPins
+    onVals = [1.15-i*0.1 for i in range(len(ioNames))]
     ioColors = []
     ioDisplayed = []
     ioState = []
-    for name, onVal in zip(ioNames, [1.15, 1.05, 0.95, 0.85]):
+    for name, onVal in zip(ioNames, onVals):
         if name in ioKeys:
             ioDisplayed.append(name)
             iio = ioKeys.index(name)
@@ -169,7 +197,7 @@ def make_plots_mpl(data, timeDeltaDict=None):
             tlabels = [item[:posdot] for item in tlabels]
             axi[-1].set_xticklabels(tlabels)
     fig.subplots_adjust(
-        left=0.08, bottom=0.04, right=0.98, top=0.93, hspace=0.04)
+        left=0.09, bottom=0.04, right=0.98, top=0.94, hspace=0.04)
 
     for ax, name, unit in zip([ax0]+axi, axNames, axUnits):
         label = u'{0} ({1})'.format(name, unit) if unit else name
@@ -181,11 +209,10 @@ def make_plots_mpl(data, timeDeltaDict=None):
                     fontsize=13, color=spinecolor, alpha=0.7)
 
     if timeDeltaDict is not None:
-        ax0.annotate('', xy=(1, 1), xycoords='axes fraction',
-                     xytext=(1, 1.25), textcoords='axes fraction',
-                     arrowprops=dict(color=spinecolor, width=1,
-                                     headwidth=7, headlength=10)
-                     )
+        ax0.annotate(
+            '', xy=(1, 1), xycoords='axes fraction', xytext=(1, 1.25),
+            textcoords='axes fraction', arrowprops=dict(
+                color=spinecolor, width=1, headwidth=7, headlength=10))
     fig.text(0.01, 0.01, '{0} time points'.format(len(times)),
              color=spinecolor, alpha=0.25)
 

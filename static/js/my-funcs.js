@@ -10,35 +10,49 @@ function state_change(checkbox, delay=500){
     state_set(checkbox.id, state, delay);
 }
 
-function state_set(name, state, delay=500, how="Manually switched"){
+function state_set(name, state, reloadDelay=500, how="Manually switched"){
     var data = {"pin": name, "state": state, "how": how};
 //    alert('pin ' + pin + ' state ' + state);
     fetch("/", {method: "POST", body: JSON.stringify(data)});
-    setTimeout(function(){location.reload(true);}, delay);
+    setTimeout(function(){location.reload(true);}, reloadDelay);
 }
 
-function thermostat_state(checkbox, delay=500){
+function thermostat_state(checkbox, reloadDelay=500){
     if(checkbox.checked)
         var state = 1;
     else
         var state = 0;
     var data = {"thermostat": 1, "state": state};
     fetch("/", {method: "POST", body: JSON.stringify(data)});
-    setTimeout(function(){location.reload(true);}, delay);
+    setTimeout(function(){location.reload(true);}, reloadDelay);
 }
 
-function time_range_change(timebutton, delay=500){
-    var data = {"timedelta": timebutton.id};
-//    alert('Timebutton ' + timebutton.id + ' has been clcked!');
+function time_plot_change(timebutton, reloadDelay=500){
+    var data = {"plotdelta": timebutton.id};
+//    alert('pbutton ' + timebutton.id + ' has been clcked!');
     fetch("/", {method: "POST", body: JSON.stringify(data)});
-    setTimeout(function(){location.reload(true);}, delay);
+    setTimeout(function(){location.reload(true);}, reloadDelay);
 }
 
-function y_range_change(timebutton, delay=500){
+function y_range_change(timebutton, reloadDelay=500){
     var data = {"yrange": timebutton.id};
 //    alert('Timebutton ' + timebutton.id + ' has been clcked!');
     fetch("/", {method: "POST", body: JSON.stringify(data)});
-    setTimeout(function(){location.reload(true);}, delay);
+    setTimeout(function(){location.reload(true);}, reloadDelay);
+}
+
+function time_camera_change(timebutton, reloadDelay=500){
+    var data = {"cameradelta": timebutton.id};
+//    alert('cbutton ' + timebutton.id + ' has been clcked!');
+    fetch("/", {method: "POST", body: JSON.stringify(data)});
+    setTimeout(function(){location.reload(true);}, reloadDelay);
+}
+
+function view_change(viewbutton, reloadDelay=50){
+    var data = {"viewpanel": viewbutton.id};
+//    alert('viewbutton ' + viewbutton.id + ' has been clcked!');
+    fetch("/", {method: "POST", body: JSON.stringify(data)});
+    setTimeout(function(){location.reload(true);}, reloadDelay);
 }
 
 function set_countdown(countdownTime){

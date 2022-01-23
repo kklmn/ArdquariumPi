@@ -1,5 +1,5 @@
 void setup() {
-  // initialize serial communication at 9600 bits per second:
+  // initialize serial communication:
   Serial.begin(115200);
 }
 

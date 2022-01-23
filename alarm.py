@@ -6,22 +6,22 @@ import __secret
 
 
 def check_set(txt=None):
-    # myEmailAddress = keyring.get_password("email", "address")
-    # myEmailPassword = keyring.get_password("email", "password")
-    myEmailAddress = __secret.address
-    myEmailPassword = __secret.password
+    # myEmailAddress = keyring.get_password("email", "emailAddress")
+    # myEmailPassword = keyring.get_password("email", "emailPassword")
+    myEmailAddress = __secret.emailAddress
+    myEmailPassword = __secret.emailPassword
     if myEmailAddress is None or myEmailPassword is None:
-        print("""Both __secret.address and __secret.password must be defined if
-              you want email alarms.""")
+        print("""Both __secret.emailAddress and __secret.emailPassword
+              must be defined if you want email alarms.""")
         return False
     return True
 
 
 def send_email(txt=None, domain='auto'):
-    # myEmailAddress = keyring.get_password("email", "address")
-    # myEmailPassword = keyring.get_password("email", "password")
-    myEmailAddress = __secret.address
-    myEmailPassword = __secret.password
+    # myEmailAddress = keyring.get_password("email", "emailAddress")
+    # myEmailPassword = keyring.get_password("email", "emailPassword")
+    myEmailAddress = __secret.emailAddress
+    myEmailPassword = __secret.emailPassword
     if domain == 'auto':
         domain = myEmailAddress.split("@")[-1]
 

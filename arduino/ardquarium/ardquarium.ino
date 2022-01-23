@@ -1,28 +1,30 @@
 // FILE: ardquarium.ino
 // AUTHOR: Konstantin Klementiev
-// VERSION: 1.0
+// VERSION: 1.5
 // PURPOSE: measure various sensors and states to report to Raspberry Pi that runs ardquarium.py
-// DATE: 9 Jan 2020
+// DATE: 22 Jan 2022
 // URL:
 // LICENSE MIT
+
+#define portArduinoBaudRate 115200
+#define UREF 5.00  // voltage for analogue sensors 
+#define ADCRES 1024  // ADC Resolution
 
 #define oneWirePin 8
 #define validTemperatureLo 15.  // same as in supply.temperatureOutlierLimits
 #define validTemperatureHi 36.  // same as in supply.temperatureOutlierLimits
 #define badTemperature validTemperatureHi+1 // must be outside of the valid range
 #define flowRatePin 2  // check that this pin is usable for interrupts on your board; on Uno and Nano: 2 or 3
-#define analogPin_pH A0
-#define analogPin_EC A1
-#define analogPin_TDS A2
 #define mainsStatePin 9
 // for BLE see http://www.martyncurrey.com/hm-10-bluetooth-4ble-modules/
 #define BLERX 4  // from TX of HM-10
 #define BLETX 5  // to RX of HM-10, must be divided from 5V to 3V3
+#define BLEBaudRate 9600
 #define BLEstatePin 11
-
-#define portArduinoBaudRate 115200
-
-#define UREF 5.00  // voltage for analogue sensors 
+#define leakStatePin 12
+#define analogPin_pH A0
+#define analogPin_EC A1
+#define analogPin_DO A2
 
 #define sampleInterval 200  // all in ms
 #define reportInterval 10000  // don't make it too long: it would need more memory and may fail at the compilation
@@ -30,13 +32,14 @@
 
 #define raspberryAliveWaitBeforeAlarm 100000 //  > raspberry boot time
 #define mainsStateWaitBeforeAlarm 100000
+#define leakStateWaitBeforeAlarm 10000
 #define alarmInterval 600000  // send next SMS not sooner than in 600 sec
 
 #define arrayLength reportInterval / sampleInterval
 unsigned long now, then;
 int arrayIndex = 0, usedArrayLength = 0;
-unsigned long lastSampleTime, lastReportTime, lastRaspberryAliveTime, lastMainsStateTime, lastAlarmTime;
-int lastAlarm = 0;
+unsigned long lastSampleTime, lastReportTime, lastRaspberryAliveTime, lastMainsStateTime, lastLeakStateTime, lastAlarmTime;
+int lastAlarm = 0, prevAlarm = 0;
 
 // for 1Wire temperatures:
 #include <DallasTemperature.h>  // by Miles Burton
@@ -44,8 +47,10 @@ int lastAlarm = 0;
 DeviceAddress tempDeviceAddress;
 OneWire oneWire(oneWirePin);
 DallasTemperature sensors(&oneWire);
-byte numberOf1WDevices;
+byte numberOf1WDevices, digitsT;
 # define MAXnumberOf1WDevices 4
+const int myIndexFrom1WIndex[4] = {0, 1, 2, 3};  // Put it initially to {0, 1, 2, 3} and
+// change the actual temperatures in your order to see where it changes in the Arduino's list of temperatures.
 float temperatureSamples[MAXnumberOf1WDevices][arrayLength] = {0};
 float temperatureAve[MAXnumberOf1WDevices];
 float temperatureGlobal;
@@ -54,6 +59,8 @@ void setup_temperatures(void) {
   sensors.begin();
   delay(500);
   numberOf1WDevices = sensors.getDeviceCount();
+  if (numberOf1WDevices > 3) digitsT = 1;
+  else digitsT = 2;
   Serial.print("found ");
   Serial.print(numberOf1WDevices);
   Serial.print(" temperature device");
@@ -145,24 +152,29 @@ void get_val_EC() {
 }
 // end for analog EC
 
-// for analog TDS
-float volt_TDS, val_TDS;
-int tdsArray[arrayLength] = {0};
-int tdsSum;
+// for analog DO
+float volt_DO, val_DO;
+int doArray[arrayLength] = {0};
+int doSum;
+#define DO_CAL_T1 28.56 //C
+//#define DO_CAL_V1 2.24 //V
+#define DO_CAL_V1 1.54 //V
+//#define DO_CAL_K (DO_CAL_V1-DO_CAL_V2) / (DO_CAL_T1-DO_CAL_T2) // = (V1-V2)/(T1-T2)
+#define DO_CAL_K 0.035 // = (V1-V2)/(T1-T2)
 
-void get_analog_TDS() {
-  tdsArray[arrayIndex] = analogRead(analogPin_TDS);
+void get_analog_DO() {
+  doArray[arrayIndex] = analogRead(analogPin_DO);
 }
 
-void get_val_TDS() {
-  // in ppm or mg/L:
-  float compensationCoefficient = 1.0 + 0.02 * (temperatureGlobal - 25.0);
-  float compensationVolatge = volt_TDS / compensationCoefficient;
-  val_TDS = (133.42 * compensationVolatge * compensationVolatge * compensationVolatge -
-             255.86 * compensationVolatge * compensationVolatge +
-             857.39 * compensationVolatge) * 0.5; // https://wiki.keyestudio.com/KS0429_keyestudio_TDS_Meter_V1.0
+void get_val_DO() {
+  float VSat = (temperatureGlobal-DO_CAL_T1) * DO_CAL_K + DO_CAL_V1;
+  val_DO = volt_DO / VSat * (
+    -0.00005724376*temperatureGlobal*temperatureGlobal*temperatureGlobal
+    +0.0069162346*temperatureGlobal*temperatureGlobal
+    -0.38819795*temperatureGlobal + 14.52872);  // my fit of
+    // https://wiki.dfrobot.com/Gravity__Analog_Dissolved_Oxygen_Sensor_SKU_SEN0237
 }
-// end for analog TDS
+// end for analog DO
 
 // for mains state
 int mainsState;
@@ -182,6 +194,20 @@ void get_BLE_state() {
 }
 // end for BLE
 
+// for leak
+int leakState;
+void get_leak_state() {
+  int sensorVal = digitalRead(leakStatePin);
+  if (sensorVal == HIGH) {
+    leakState = 0;
+//    digitalWrite(13, LOW); // internal LED off
+  } else {
+    leakState = 1;
+//    digitalWrite(13, HIGH); // internal LED on
+  }
+}
+// end for leak
+
 // for LCD
 #include <LiquidCrystal_PCF8574.h> // by Matthias Hertel
 #include <Wire.h>
@@ -195,7 +221,7 @@ void setup_lcd() {
   int error = Wire.endTransmission();
   if (error == 0) {
     Serial.println("LCD found on 0x27");
-    lcd.begin(16, 2);
+//    lcd.begin(16, 2);
     lcd.begin(20, 4);
     lcd.setBacklight(1);
   } else {
@@ -238,8 +264,8 @@ void print_to_lcd20x4() {
     tempOut = temperatureAve[iT];
     // uncomment if needed in Fahrenheit:
     // tempOut = DallasTemperature::toFahrenheit(tempOut);
-    dtostrf(tempOut, 4, 1, lcdmsg);
-    lcd.setCursor(iT * 5, 0);
+    dtostrf(tempOut, digitsT+3, digitsT, lcdmsg);
+    lcd.setCursor(iT * (digitsT+4), 0);
     lcd.print(lcdmsg);
   }
   lcd.print("C");
@@ -251,7 +277,7 @@ void print_to_lcd20x4() {
   lcd.print("L/h");
 
   lcd.print("  pH");
-  dtostrf(val_pH, 3, 1, lcdmsg);
+  dtostrf(val_pH, 4, 2, lcdmsg);
   lcd.print(lcdmsg);
 
   lcd.setCursor(0, 2);
@@ -265,10 +291,10 @@ void print_to_lcd20x4() {
   if (BLEstate == 1) lcd.print("on "); else lcd.print("off");
 
   lcd.setCursor(0, 3);
-  lcd.print("TDS");
-  dtostrf(val_TDS, 4, 0, lcdmsg);
+  lcd.print("DO");
+  dtostrf(val_DO, 4, 1, lcdmsg);
   lcd.print(lcdmsg);
-  lcd.print("ppm");
+  lcd.print("mg/L");
 
   lcd.print(" mains ");
   if (mainsState == 1) lcd.print("on "); else lcd.print("off");
@@ -285,17 +311,19 @@ void setup(void) {
   setup_counter(); // flow rate
   setup_analog_EC();
 
-  BTserial.begin(9600);
+  BTserial.begin(BLEBaudRate);
 
   pinMode(mainsStatePin, INPUT);
   pinMode(BLEstatePin, INPUT);
   digitalWrite(mainsStatePin, LOW);
   digitalWrite(BLEstatePin, LOW);
+  pinMode(leakStatePin, INPUT_PULLUP);
 
   lastSampleTime = millis();
   lastReportTime = millis();
   lastRaspberryAliveTime = millis();
   lastMainsStateTime = millis();
+  lastLeakStateTime = millis();
   lastAlarmTime = millis();
 }
 
@@ -314,9 +342,9 @@ void average_and_get_states() {
       }
     }
     if (numberOfValidTs > 0) {
-      temperatureAve[iT] = temperatureSum / numberOfValidTs;
+      temperatureAve[myIndexFrom1WIndex[iT]] = temperatureSum / numberOfValidTs;
     } else {
-      temperatureAve[iT] = badTemperature;
+      temperatureAve[myIndexFrom1WIndex[iT]] = badTemperature;
     }
     temperatureSumAll += temperatureSum;
     numberOfValidTsAll += numberOfValidTs;
@@ -332,29 +360,32 @@ void average_and_get_states() {
   phSum = 0;
   for (int i = 0; i < usedArrayLength; i++)
     phSum += phArray[i];
-  volt_pH = float(phSum) / usedArrayLength * UREF / 1024;
+  volt_pH = float(phSum) / usedArrayLength * UREF / ADCRES;
   get_val_pH();
 
   ecSum = 0;
   for (int i = 0; i < usedArrayLength; i++)
     ecSum += ecArray[i];
-  volt_EC = float(ecSum) / usedArrayLength * UREF / 1024;
+  volt_EC = float(ecSum) / usedArrayLength * UREF / ADCRES;
   get_val_EC();
 
-  tdsSum = 0;
+  doSum = 0;
   for (int i = 0; i < usedArrayLength; i++)
-    tdsSum += tdsArray[i];
-  volt_TDS = float(tdsSum) / usedArrayLength * UREF / 1024;
-  get_val_TDS();
+    doSum += doArray[i];
+  volt_DO = float(doSum) / usedArrayLength * UREF / ADCRES;
+  get_val_DO();
 
   get_mains_state();
 
   get_BLE_state();
+
+  get_leak_state();
 }
 
 
 void check_alarms(void) {
   String buf;
+  prevAlarm = lastAlarm;
   lastAlarm = 0;
   now = millis();
 
@@ -379,15 +410,25 @@ void check_alarms(void) {
     if ((now - lastMainsStateTime) >= mainsStateWaitBeforeAlarm)
       lastAlarm = lastAlarm | 2;
   }
+
+  if (leakState == 0) {
+    lastLeakStateTime = now;
+  } else {
+    if ((now - lastLeakStateTime) >= leakStateWaitBeforeAlarm)
+      lastAlarm = lastAlarm | 4;
+  }
 }
 
 
 void report_results(void) {
   now = millis();
 
+  if (lastAlarm != prevAlarm) {
+    lcd.clear();
+  }
+
   // comment out when testing
   if (lastAlarm & 1) {  // no raspberry
-    lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("RPi disconnected");
     lcd.setCursor(0, 1);
@@ -412,6 +453,13 @@ void report_results(void) {
     }
   }
 
+  if ((lastAlarm & 4) && (BLEstate == 1)) {  // leak
+    if ((now - lastAlarmTime) >= alarmInterval) {
+      lastAlarmTime = now;
+      BTserial.write("SMS:leak");
+    }
+  }
+
   for (int iT = 0; iT < numberOf1WDevices; iT++) {
     Serial.print(temperatureAve[iT], 3);
     Serial.print("\t");
@@ -425,13 +473,17 @@ void report_results(void) {
   Serial.print(val_EC, 2);
   Serial.print("\t");
 
-  Serial.print(val_TDS, 2);
+  Serial.print(val_DO, 4);
   Serial.print("\t");
 
   Serial.print(mainsState);
   Serial.print("\t");
 
   Serial.print(BLEstate);
+  Serial.print("\t");
+
+  Serial.print(leakState);
+
   Serial.println();
 
   // comment out when testing
@@ -450,7 +502,7 @@ void loop(void) {
     get_temperatures();
     get_analog_pH();
     get_analog_EC();
-    get_analog_TDS();
+    get_analog_DO();
 
     lastSampleTime = now;
     arrayIndex++;

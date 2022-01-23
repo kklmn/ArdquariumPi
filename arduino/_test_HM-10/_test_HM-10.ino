@@ -1,12 +1,14 @@
 #include <SoftwareSerial.h>
-SoftwareSerial BTserial(4, 5); // RX = 4 (from TX of HM-10), TX = 5 (to RX of HM-10, must be divided from 5V to 3V3)
+#define BLERX 4  // from TX of HM-10
+#define BLETX 5  // to RX of HM-10, must be divided from 5V to 3V3
+SoftwareSerial BTserial(BLERX, BLETX);
 
 char c=' ';
 boolean NL = true;
  
 void setup() 
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
     Serial.print("Sketch:   ");   Serial.println(__FILE__);
     Serial.print("Uploaded: ");   Serial.println(__DATE__);
     Serial.println(" ");
@@ -23,7 +25,8 @@ void loop()
         c = BTserial.read();
         Serial.write(c);
     }
-  
+ 
+ 
     // Read from the Serial Monitor and send to the Bluetooth module
     if (Serial.available())
     {

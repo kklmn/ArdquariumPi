@@ -1,0 +1,347 @@
+:root {
+/* dark gray */
+/*  --color-bright-text: #fff;
+  --color-light-text: #888;
+  --color-dark-text: #000;
+  --color-body-background: #111;
+  --color-panel-background: #777;
+  --color-panel: #444;
+  --color-button-face: #666;
+  --color-button-face-active: #ccc;
+  --color-panel-shadow: rgba(0.2, 0.2, 0.2, 0.5);*/
+
+/* dark bluish */
+  --color-bright-text: #eef;
+  --color-light-text: #889;
+  --color-dark-text: #001;
+  --color-body-background: #667;
+  --color-panel-background: #667;
+  --color-panel: #334;
+  --color-button-face: #556;
+  --color-button-face-active: #ccd;
+  --color-panel-shadow: rgba(0.2, 0.2, 0.25, 0.5);
+
+/* light bluish */
+/*  --color-bright-text: #001;
+  --color-light-text: #445;
+  --color-dark-text: #eef;
+  --color-body-background: #99a;
+  --color-panel-background: #99a;
+  --color-panel: #ccd;
+  --color-button-face: #99a;
+  --color-button-face-active: #bbc;
+  --color-panel-shadow: rgba(0.7, 0.7, 0.75, 0.5);*/
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  text-align: left;
+  background: var(--color-body-background);
+  cursor: default; /*otherwise text fields have a caret cursor*/
+}
+
+.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.currentDate {
+  white-space: pre-line;
+  float: right;
+/*  font-style: italic;*/
+  text-align: right;
+  color: var(--color-bright-text);
+  padding: 0px;
+  font-size: 10px;
+  line-height: 100%;
+}
+
+@supports (-webkit-overflow-scrolling: touch) {
+  /* CSS specific to iOS devices */
+  .currentDate {
+    line-height: 90%;
+  }
+}
+@supports not (-webkit-overflow-scrolling: touch) {
+  /* CSS for other than iOS devices */ 
+  .currentDate {
+    line-height: 100%;
+  }
+}
+
+h1 {
+  margin: 0;
+/*  font-family: sans-serif;*/
+  text-align: left;
+  color: var(--color-bright-text);
+  font-size: 15px;
+  padding: 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+}
+
+h2 {
+/*  font-family: sans-serif;*/
+  text-align: left;
+  color: var(--color-bright-text);
+  font-size: 12px;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 132px 132px;
+  grid-template-rows: 40px auto;
+  grid-auto-columns: min-content;
+  column-gap: 9px;
+  row-gap: 9px;
+  background-color: var(--color-panel-background);
+  padding: 7px;
+  width: -moz-max-content;    /* Firefox/Gecko */
+  width: -webkit-max-content; /* Chrome */
+  width: max-content;
+}
+
+.container > div {
+  padding: 0px;
+  background-color: var(--color-panel);
+  border-radius: 3px;
+  box-shadow: 2px 5px 5px var(--color-panel-shadow);
+}
+
+.viewbuttonlayout {
+  grid-column: 1 / 3;
+  text-align: center;
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-evenly;    
+  justify-items: center;
+  align-items: center;
+}
+
+.pinlayout {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 75px 57px;
+  grid-template-rows: auto 5px;  /* 2nd row for thermostat */
+  justify-items: start;
+  align-items: center;
+  gap: 0px 0px;
+}
+
+.gaugelayout {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 0px;
+  display: grid;
+  grid-template-columns: 66px 66px;
+  grid-auto-rows: minmax(60px, auto);
+  justify-items: center;
+  align-items: center;
+  column-gap: 0px;
+  row-gap: 0px;
+}
+
+.plots {
+  width: 360px;
+  grid-row: 1 / 3;
+}
+
+.plots > div{
+  text-align: left;
+  padding: 5px;
+  font-size: 10px;
+}
+
+.plots > img{
+  padding: -5px;
+}
+
+.messages {
+  width: 250px;
+  grid-row: 1 / 3;
+  line-height: 15px;
+  text-align: left;
+  color: var(--color-bright-text);
+/*  font-family: sans-serif;*/
+  font-size: 10px;
+/*  line-height: 0.6;*/
+}
+
+.textbox {
+  width: 100%;
+  padding-top: 3px;
+  padding-left: 8px;
+}
+
+.viewbutton {
+  background-color: var(--color-button-face);
+  color: var(--color-bright-text);
+  border-radius: 5px;
+  margin: 0px;
+  padding: 0px;
+  width: 80px;
+  height: 25px;
+  text-align: center;
+  font-size: 13px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  outline: 0;  /* to remove selection rectangle */
+  cursor: pointer;
+}
+
+.viewactive {
+  background-color: var(--color-button-face-active);
+  color: var(--color-dark-text);
+}
+
+.viewbutton:hover, .viewactive:hover {
+  filter: brightness(120%);
+}
+
+.pinheader {
+  padding: 0px;
+  padding-left: 5px;
+  margin: 0px;
+/*  font-family: sans-serif;*/
+  text-align: left;
+  color: var(--color-bright-text);
+  font-size: 12px;
+  text-transform: uppercase;
+/*  letter-spacing: 1px;*/
+  width: 75px;
+}
+
+.pinstatus {
+  margin: 0px;
+/*  font-family: sans-serif;*/
+  text-align: left;
+  color: var(--color-light-text);
+//  text-shadow: 0.5px 0.5px 0.5px var(--color-light-text);
+  font-size: 10px;
+/*  line-height: 95%;*/
+  text-transform: none;
+  width: 75px;
+}
+
+.thermostat {
+  padding: 5px;
+  margin: 0px;
+  margin-left: 40px;
+}
+
+.thermostatlabel {
+  padding: 5px;
+  margin: 0px;
+  margin-left: 0px;
+  width: 75px;
+  color: var(--color-bright-text);
+  font-size: 12px;
+}
+
+.gaugesmall {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding: 0px;
+  border: 0px;
+  height: 60px;
+  color: var(--color-light-text);
+//  text-shadow: 0.5px 0.5px 0.5px var(--color-light-text);
+}
+
+.gaugesmallcentered {
+  grid-column: 1 / 3;
+}
+
+.gaugebig {
+  margin-top: 1px;
+  padding: 0px;
+  border: 0px;
+  height: 66px;
+  grid-column: 1 / 3;
+  color: var(--color-light-text);
+//  text-shadow: 0.5px 0.5px 0.5px var(--color-light-text);
+}
+
+.cervicestatelayout {
+  grid-column: 1 / 3;
+  display: flex;
+  justify-content: space-around;
+  column-gap: 15px;
+}
+
+.cervicestate {
+  height: 20px;
+  padding: 5
+  text-align: center;
+  font-size: 12px;
+}
+
+.tbutton {
+  background-color: var(--color-button-face);
+  color: var(--color-bright-text);
+  border-radius: 5px;
+  padding: 0px;
+  width: 30px;
+  text-align: center;
+  font-size: 10px;
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  outline: 0;  /* to remove selection rectangle */
+  cursor: pointer;
+}
+
+.tdactive {
+  background-color: var(--color-button-face-active);
+  color: var(--color-dark-text);
+}
+
+.tbutton:hover, .tdactive:hover {
+  filter: brightness(120%);
+}
+
+.ybutton {
+  width: 47px;
+  margin-left: 10px;
+}
+
+.camera {
+  grid-row: 1 / 3;
+  min-height: 510px;
+}
+
+.camera > div{
+  text-align: left;
+  padding: 5px;
+  font-size: 10px;
+  min-width: 480px;
+}
+
+.camera > img{
+  padding: 5px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  height: calc(100% - 30px);
+}
+
+.cbutton {
+  width: 60px;
+}
+
+.footer {
+/*  line-height: 15px;*/
+  text-align: left;
+  color: var(--color-panel); opacity:0.5;
+/*  font-family: sans-serif;*/
+  font-size: 10px;
+  width: 260px;
+}
+
+#countdown {
+  color: #ff0;
+}

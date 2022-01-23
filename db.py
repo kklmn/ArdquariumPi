@@ -103,6 +103,7 @@ class PiBase(object):
             print(self.counter, now.strftime('%a %d%b%Y %H:%M:%S'), ios, lstt)
         except sql.OperationalError as e:
             logging.error(e)
+            print(e)
             interval = 0.5
         threading.Timer(interval, self.run).start()
 

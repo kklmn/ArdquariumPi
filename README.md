@@ -7,7 +7,7 @@ a web interface that LAN devices (optionally, remote devices) can access in
 a browser.
 
 <p align="center">
-  <img src="docs/_images/ArdquariumPi0.png " width=1000 />
+  <img src="docs/images/ArdquariumPi.png " width=1000 />
 </p>
 
 Features

@@ -8,7 +8,7 @@
     <meta http-equiv="refresh" content="60"/>
 
     <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='css/main_style.css') }}">
+        href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" type="text/css"
         href="{{ url_for('static', filename='css/slider_checkbox.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='discusAquarium.ico') }}">
@@ -20,18 +20,35 @@
   </head>
 
   <body>
-    <div class="flex-container" style="height: {{plotHeight+42}}px;">
+    {# if min-height is not given, it flickers at redrawing #}
+    <div class="container" style="min-height: {{plotHeight+30}}px;">
+        <div class="viewbuttonlayout">
+            {% for vs in viewstates %}
+                <div>
+                <button class="viewbutton {{'viewactive' if viewstates[vs][0] else ''}}"
+                    {% if not viewstates[vs][1] %}
+                        disabled
+                    {% endif %}
+                    id={{vs}} onclick="view_change(this)">{{vs}}</button>
+                </div>
+            {% endfor %}
+        </div>
+
         <div class="pinlayout">
             {% for pin in outPins %}
-                <div class="pinheader"
-                    {# color: {{outPins[pin]['color']}}; #}
-                    {% if pin in cronTasks%}
-                      style= "padding-top: 6px;"
-                    {% else %}
-                      style= "padding-top: 16px;"
-                    {% endif %}
-                    >
+                <div class="pinheader">
                 {{pin}}
+                {% if thermostat['active'] %}
+                    {% if pin in thermostat['heatingPins']%}
+                        <p class="pinstatus" style="color: {{outPins[pin]['color']}};">
+                        if T<{{thermostat['limits'][0]}}{{temperatureUnit}} </p>
+                    {% endif %}
+                    {% if pin in thermostat['coolingPins']%}
+                        <p class="pinstatus" style="color: {{outPins[pin]['color']}};">
+                        if T>{{thermostat['limits'][1]}}{{temperatureUnit}} </p>
+                    {% endif %}
+                {% endif %}
+
                 {% if pin == "feeding" %}
                     <p class="pinstatus" id="countdown"> </p>
                 {% endif %}
@@ -43,32 +60,87 @@
                     {{ cronTasks[pin]['str'] }} </p>
                 {% endif %}
                 </div>
+
                 {# www.w3schools.com/howto/howto_css_switch.asp #}
                 <label class="toggle">
                     <input type="checkbox" id={{pin}}
                       onclick="state_change(this)"
                       {{'checked' if outPins[pin].state == 1 else ''}}>
                     <span class="slider"
-                       style="--checkedbackground: {{outPins[pin]['color']}}; --uncheckednotch: {{outPins[pin]['dimmedColor']}};">
+                       style="--checkedbackground: {{outPins[pin]['color']}};">
                     </span>
                 </label>                
+
+                {% if pin == "heater" %}
+                    {% if thermostat['active'] is not none %}
+                    <div class="thermostat">
+                    <label class="toggle_small">
+                        <input type="checkbox" onclick="thermostat_state(this)"
+                            {{'checked' if thermostat['active'] else ''}}>
+                        <span class="slider_small"
+                            style="--checkedbackground: {{thermostat['color']}};">
+                        </span>
+                    </label>                
+                    </div>
+                    <div class="thermostatlabel"> auto </div>
+                    {% endif %}
+                {% endif %}
+
             {% endfor %}
         </div>
 
         <div class="gaugelayout">
-            {% for temperature in temperatures %}
-                <div id="{{temperature}}" class="tgaugesmall"></div>
+            {% for itemp, temperature in enumerate(temperatures) %}
+                <div id="{{temperature}}"
+                {% if (itemp == temperatures|length-1) and (temperatures|length %2 == 1) %}
+                    class="gaugesmall gaugesmallcentered"
+                {% else %}
+                    class="gaugesmall"
+                {% endif %}
+                ></div>
             {% endfor %}
-            <div class="gaugelayout1col">
-               {% for sensor in sensorsFromArduino %}
-                    <div id="{{sensor}}" class="tgauge"></div>
-               {% endfor %}
-               {% for sensor in sensorsFromRaspberry %}
-                    <div id="{{sensor}}" class="tgauge"></div>
-               {% endfor %}
+            {% for sensor in sensorsFromArduino %}
+                 <div id="{{sensor}}" class="gaugebig"></div>
+            {% endfor %}
+            {% for sensor in sensorsFromRaspberry %}
+                 <div id="{{sensor}}" class="gaugebig"></div>
+            {% endfor %}
+
+            <div class="cervicestatelayout">
+            {% for pin in gaugePins %}
+                {% if pin in inPinsFromArduino%}
+                    <div class="cervicestate">
+                    <span style="color: {{inPinsFromArduino[pin]['color']}};">
+                    {{pin}}
+                    </span>
+                    <label class="toggle_small">
+                        <input type="checkbox" disabled
+                            {{'checked' if inPinsFromArduino[pin]['state'] else ''}}>
+                        <span class="noslider_small"
+                            style="--checkedbackground: {{inPinsFromArduino[pin]['color']}};">
+                        </span>
+                    </label>
+                    </div>                
+                {% endif %}
+                {% if pin in inPinsFromRaspberry%}
+                    <div class="cervicestate">
+                    <span style="color: {{inPinsFromRaspberry[pin]['color']}};">
+                    {{pin}}
+                    </span>
+                    <label class="toggle_small">
+                        <input type="checkbox" disabled
+                            {{'checked' if inPinsFromRaspberry[pin]['state'] else ''}}>
+                        <span class="noslider_small"
+                            style="--checkedbackground: {{inPinsFromRaspberry[pin]['color']}};">
+                        </span>
+                    </label>
+                    </div>                
+                {% endif %}
+            {% endfor %}
             </div>
         </div>
 
+        {% if viewstates["plots"][0]%}
         <div class="plots">
            {% if wantPlot.startswith("plotly") %}
               <iframe id="temperatures"
@@ -81,11 +153,11 @@
               </iframe>
            {% elif wantPlot.startswith("mpl") %}
               <div>
-                {% for td in timedeltas %}
-                  <button class="timebutton {{'tdactive' if currentdelta == td else ''}}"
-                      id={{td}} onclick="time_range_change(this)">{{td}}</button>
+                {% for td in plotDeltas %}
+                   <button class="tbutton {{'tdactive' if currentPlotDelta == td else ''}}"
+                      id={{td}} onclick="time_plot_change(this)">{{td}}</button>
                 {% endfor %}
-                <button class="timebutton ybutton {{'tdactive' if yrange == 'auto' else ''}}"
+                <button class="tbutton ybutton {{'tdactive' if yrange == 'auto' else ''}}"
                     id="yrange" onclick="y_range_change(this)">auto Y</button>
                 <div id="currentDate", class="currentDate"></div>
               </div>
@@ -94,45 +166,51 @@
               </script>
 
               <img src="data:image/png;base64,{{plotStr}}"
-                width="360"
                 height={{plotHeight}}
               />
            {% endif %}
         </div>
+        {% endif %}
 
+        {% if viewstates["messages"][0]%}
         <div class="messages">
-          <div class="textbox">
-           {% for im, (message, messageTime) in enumerate(zip(messages, messageTimes)) %}
+            <div class="textbox">
+            {% for im, (message, messageTime) in enumerate(zip(messages, messageTimes)) %}
                {% if im == 0 %}
                  ► {{messageTime.split(',')[1]}}
                {% else %}
                  {{messageTime}}:
                {% endif %}
-               
-               {% set pinName = message.split()[-2] %}               
-               {% set pinState = message.split()[-1] == 'on' %}               
-               {% set obj = thermostat if pinName == 'thermostat' else outPins[pinName] %}
-               {% set color = obj['color'] if pinState else obj['dimmedColor'] %}               
-               <span style="color: {{color}};">
-               {{message}}<br />
-               </span>
-          {% endfor %}
-          </div>
-        </div>
-    </div>
 
-    {% if thermostat['active'] is not none %}
-    <label class="toggle_small" id="thermostat">
-        <input type="checkbox" onclick="thermostat_state(this)"
-            {{'checked' if thermostat['active'] else ''}}>
-        <span class="slider_small"
-            style="--checkedbackground: {{thermostat['color']}}; --uncheckednotch: {{thermostat['dimmedColor']}};">
-        </span>
-    </label>                
-    <label for="thermostat" id="thermostatlabel"
-{#    style="color: {{thermostat['color']}};"  #}
-    > auto</label>
-    {% endif %}
+               {% set pinName = message.split()[-2] %}
+               {% if pinName in outPins %}
+                   {% set pinState = message.split()[-1] == 'on' %}               
+                   {% set color = outPins[pinName]['color'] if pinState else outPins[pinName]['dimmedColor'] %}               
+               {% elif pinName == "thermostat" %}
+                   {% set pinState = message.split()[-1] == 'on' %}               
+                   {% set color = thermostat['color'] if pinState else thermostat['dimmedColor'] %}               
+               {% else %}
+                   {% set color = "orange" %}               
+               {% endif %}
+               <span style="color: {{color}};"> {{message}}<br /> </span>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if viewstates["camera"][0]%}
+        <div class="camera">
+            <div>
+            {% for td in cameraDeltas %}
+                <button class="tbutton cbutton {{'tdactive' if currentCameraDelta == td else ''}}"
+                    id="{{td}}" onclick="time_camera_change(this)">{{td}}</button>
+            {% endfor %}
+            </div>
+
+            <img src="{{ url_for('stream') }}">
+        </div>
+       {% endif %}
+    </div>
 
     <script type="text/javascript">
         var countdownTime = {{feedCounter}};  // in s
@@ -151,7 +229,7 @@
     {% for temperature in temperatures %}
       new JustGage({
         id: "{{temperature}}",
-        valueMinFontSize: 14,
+        valueMinFontSize: 13,
         value: {{temperatures[temperature]['value']}},
         min: {{temperatureDisplayLimits[0]}},
         max: {{temperatureDisplayLimits[1]}},
@@ -172,7 +250,7 @@
              "hi": {{temperatureColorSectors[2]["hi"]}},
              "color": "{{temperatureColorSectors[2]['color']}}"}],
         levelColorsGradient: false,
-        gaugeWidthScale: 0.75,
+        gaugeWidthScale: 0.85,
       });
     {% endfor %}
 
@@ -180,7 +258,7 @@
       {% for name, sensor in dd.items() %}
         new JustGage({
           id: "{{name}}",
-          valueMinFontSize: 14,
+          valueMinFontSize: 13,
           value: {{sensor['value']}},
           min: {{sensor['limits'][0]}},
           max: {{sensor['limits'][1]}},
@@ -211,8 +289,8 @@
     });
     </script>
 
-    <div id="footer" class="footer">
-        &nbsp;ArdquariumPi {{version}} &copy; 2020 K.Klementiev
+    <div class="footer">
+        &nbsp;ArdquariumPi {{version}}
     </div>
 
   </body>
