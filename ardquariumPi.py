@@ -54,7 +54,7 @@ messages = deque(maxlen=messagesLen)
 messageTimes = deque(maxlen=messagesLen)
 
 # allowRemote = True
-allowRemote = False
+allowRemote = False  # outside of trustedAddresses
 trustedProxies = ()
 trustedAddresses = ('192.168', '127.0.0')  # checked by startswith()
 userAttempts = {}  # {address: no_of_attempts}
@@ -88,14 +88,14 @@ def get_remote():
 
 
 def is_known():
-    if not allowRemote:
-        return False
-
     remote = get_remote()
 
     for trustedAddress in trustedAddresses:
         if remote.startswith(trustedAddress):
             return True
+
+    if not allowRemote:
+        return False
 
     jdata = request.get_json(force=True, silent=True)
     try:
