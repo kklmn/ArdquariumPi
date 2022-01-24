@@ -22,12 +22,11 @@ Here I utilize
 ![](images/arduino_screen.jpg){:height="33%" width="33%"}
 
 When I was building the system, I connected the devices one by one and tested
-them with the supplied test scripts, find them in "arduino" folder. A Windows
-computer and a Raspberry Pi computer are equally good for running the Arduino
-IDE.
+them with the supplied test scripts, find them in "arduino" folder. The Arduino
+IDE can be run on both a Windows computer and a Raspberry Pi computer.
 
 I use Raspberry Pi 4B as passively cooled, with a UPS hat (PiJuice) and a GPIO
-connector hat, see below.
+connector hat, see below with the hat disconnected.
 
 ![](images/RPi.jpg){:height="100%" width="100%"}
 
@@ -37,7 +36,7 @@ encapsulated in it.
 
 ![](images/complete.jpg){:height="75%" width="75%"}
 
-I have an old phone located close to the Arduino that is connected via BLE. It
+I have an old phone located close to the aquarium and connected via BLE. It
 has a cheap pre-paid SIM card that enables alarm texts. Quite a problem is that
 the phone may drop the BLE connection when the screen goes to energy saving
 mode. On this particular phone the problem was solved by disabling the energy
