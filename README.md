@@ -35,8 +35,8 @@ Several temperature gauges provide input to the thermostat function.
 An optional Raspberry Pi camera provides still pictures or a video stream
 displayed in the web GUI.
 
-An optional phone located close to the Arduino can be connected via BLE and
-send alarm texts. The same phone can be used a standard control screen.
+An optional phone located close to the Arduino can be connected via BLE to send
+alarm texts. The same phone can be used as a standard control screen.
 
 Software
 --------
