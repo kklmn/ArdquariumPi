@@ -26,7 +26,7 @@ them with the supplied test scripts, find them in "arduino" folder. The Arduino
 IDE can be run on both a Windows computer and a Raspberry Pi computer.
 
 I use Raspberry Pi 4B as passively cooled, with a UPS hat (PiJuice) and a GPIO
-connector hat, see below with the hat disconnected.
+connector hat, see below with the PiJuice hat disconnected.
 
 ![](images/RPi.jpg){:height="100%" width="100%"}
 
