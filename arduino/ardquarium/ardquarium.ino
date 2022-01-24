@@ -19,7 +19,7 @@
 // for BLE see http://www.martyncurrey.com/hm-10-bluetooth-4ble-modules/
 #define BLERX 4  // from TX of HM-10
 #define BLETX 5  // to RX of HM-10, must be divided from 5V to 3V3
-#define BLEBaudRate 9600
+#define BLEBaudRate 9600  // at 115200 it gets connected but fails at BTserial.write()
 #define BLEstatePin 11
 #define leakStatePin 12
 #define analogPin_pH A0
