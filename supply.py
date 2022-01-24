@@ -135,9 +135,12 @@ arduinoBootDelay = 12.  # s. When rebooting arduino after exceptions
 plotPins = ['heater', 'cooler', 'mains', 'BLE']  # plot state of these pins
 gaugePins = ['mains', 'BLE', 'leak']  # display state of these pins by gauges
 
-wantEmailAlarms = ['arduino', 'temperature', 'mains', 'BLE',  'leak',
-                   'intrusion']
+wantEmailAlarms = []  # when emailAddress and emailPassword in __secret are undefined
+# wantEmailAlarms = ['arduino', 'temperature', 'mains', 'BLE',  'leak',
+#                    'intrusion']
 if wantEmailAlarms:
+    # remember: if you want emails,
+    # both __secret.emailAddress and __secret.emailPassword must be defined
     delayUntilArduinoAlarm = datetime.timedelta(minutes=10)
     delayUntilTemperatureAlarm = datetime.timedelta(minutes=10)
     delayUntilMainsAlarm = datetime.timedelta(minutes=10)

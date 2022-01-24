@@ -53,7 +53,7 @@ messagesLen = 33
 messages = deque(maxlen=messagesLen)
 messageTimes = deque(maxlen=messagesLen)
 
-# allowRemote = True
+# allowRemote = True  # outside of trustedAddresses
 allowRemote = False  # outside of trustedAddresses
 trustedProxies = ()
 trustedAddresses = ('192.168', '127.0.0')  # checked by startswith()
