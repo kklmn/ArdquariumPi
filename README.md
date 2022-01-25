@@ -17,9 +17,9 @@ GUI
 ---
 
 The main program runs on a Raspberry Pi in Python and uses Flask. The main
-display elements -- switches and gauges -- fit a vertical phone screen. All
-other less critical display elements, such as plots, are added on a side to
-sweep the web page sideways.
+display elements -- switches and gauges -- fit a vertical phone screen, marked
+by the orange rectangle above. All other less critical display elements, such
+as plots, are added on a side to sweep the web page sideways.
 
 Hardware
 --------
