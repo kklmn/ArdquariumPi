@@ -398,7 +398,7 @@ void check_alarms(void) {
   if (buf.startsWith("alive")) {
     lastRaspberryAliveTime = now;
   } else if (buf.startsWith("SMS")) {
-    BTserial.write("SMS:test");
+    BTserial.write("S:t");
   } else {
     if ((now - lastRaspberryAliveTime) >= raspberryAliveWaitBeforeAlarm)
       lastAlarm = lastAlarm | 1;
@@ -435,7 +435,7 @@ void report_results(void) {
     if ((now - lastAlarmTime) >= alarmInterval) {
       lastAlarmTime = now;
       if (BLEstate == 1) {
-        BTserial.write("SMS:noRPi");
+        BTserial.write("S:p");
         lcd.print("SMS sent");
       }
     } else {
@@ -449,14 +449,14 @@ void report_results(void) {
   if ((lastAlarm & 2) && (BLEstate == 1)) {  // no mains
     if ((now - lastAlarmTime) >= alarmInterval) {
       lastAlarmTime = now;
-      BTserial.write("SMS:noMains");
+      BTserial.write("S:m");
     }
   }
 
   if ((lastAlarm & 4) && (BLEstate == 1)) {  // leak
     if ((now - lastAlarmTime) >= alarmInterval) {
       lastAlarmTime = now;
-      BTserial.write("SMS:leak");
+      BTserial.write("S:l");
     }
   }
 

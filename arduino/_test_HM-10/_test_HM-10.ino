@@ -1,6 +1,10 @@
+#define portArduinoBaudRate 115200
+
 #include <SoftwareSerial.h>
 #define BLERX 4  // from TX of HM-10
 #define BLETX 5  // to RX of HM-10, must be divided from 5V to 3V3
+#define BLEBaudRate 9600
+#define waitWriteBLE 0
 SoftwareSerial BTserial(BLERX, BLETX);
 
 char c=' ';
@@ -8,13 +12,14 @@ boolean NL = true;
  
 void setup() 
 {
-    Serial.begin(9600);
+    Serial.begin(portArduinoBaudRate);
     Serial.print("Sketch:   ");   Serial.println(__FILE__);
     Serial.print("Uploaded: ");   Serial.println(__DATE__);
     Serial.println(" ");
  
-    BTserial.begin(9600);  
-    Serial.println("BTserial started at 9600");
+    BTserial.begin(BLEBaudRate);
+    Serial.print("BTserial started at ");
+    Serial.println(BLEBaudRate);
 }
  
 void loop()
@@ -36,6 +41,7 @@ void loop()
         if (c!=10 & c!=13 ) 
         {  
              BTserial.write(c);
+             delay(waitWriteBLE);
         }
  
         // Echo the user input to the main window. 
