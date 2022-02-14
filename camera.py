@@ -41,8 +41,9 @@ mimetype = "multipart/x-mixed-replace; boundary={0}".format(boundary)
 
 class Streamer:
     processing = (
-        ('resize', [(640, 480)]),  # new size
-        # ('rotate', [180]),  # deg
+        # ('resize', [(640, 480)]),  # good for horizontal image
+        ('resize', [(480, 360)]),  # good for vertical image
+        ('rotate', [270]),  # deg, 270="rotate right"
         # ('detect_motion', [10, (255, 0, 0)]),  # bkgndTargetCount, colorBGR
         ('add_time_stamp', ['%Y/%m/%d, %H:%M:%S', (0, 0, 255)]),  # fmt, cBGR
         ('encode', ['.jpg']),  # must be encoded
